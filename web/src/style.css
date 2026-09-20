@@ -146,7 +146,8 @@ button {
 /* --- hero --------------------------------------------------------------- */
 
 .hero {
-  padding: 28px 0 8px;
+  /* padding-block, а не padding, чтобы не перекрывать горизонтальный padding у .wrap */
+  padding-block: 28px 8px;
 }
 
 .hero h1 {
@@ -257,12 +258,13 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
   gap: 28px;
-  padding: 36px 0;
+  /* padding-block, а не padding, чтобы не перекрывать горизонтальный padding у .wrap */
+  padding-block: 36px;
   border-top: 1px solid var(--border);
 }
 
 .panel {
-  padding: 32px 0;
+  padding-block: 32px;
   border-top: 1px solid var(--border);
 }
 
@@ -450,7 +452,9 @@ main {
   border-radius: 6px;
   background: var(--surface);
   color: var(--text);
-  min-width: 92px;
+  /* без min-width: 0 select не сжимается ниже ширины текста опций и рвёт грид на мобильном */
+  min-width: 0;
+  flex: 0 1 92px;
 }
 
 .converter-swap {
@@ -483,6 +487,7 @@ main {
 
 .table-scroll {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
   border-radius: 9px;
 }
@@ -669,14 +674,15 @@ main {
 
 @media (max-width: 928px) {
   .panel-grid {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr), а не 1fr — иначе колонка не сжимается меньше min-content содержимого */
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 640px) {
   .panel,
   .panel-grid {
-    padding: 16px 0;
+    padding-block: 16px;
   }
 
   .hero-value {
