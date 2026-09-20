@@ -1,0 +1,49 @@
+{
+  "note": "Курсы банков вводятся вручную (этап 1). Обновляйте поле rates и updated по данным с сайтов банков или из обменных пунктов.",
+  "banks": [
+    {
+      "id": "eskhata",
+      "name": "Эсхата",
+      "updated": "2026-09-18",
+      "verified": true,
+      "rates": {
+        "USD": { "buy": 9.18, "sell": 9.27 },
+        "EUR": { "buy": 10.30, "sell": 10.50 },
+        "RUB": { "buy": 0.101, "sell": 0.103 }
+      }
+    },
+    {
+      "id": "amonatbonk",
+      "name": "Амонатбанк",
+      "updated": "2026-09-18",
+      "verified": false,
+      "rates": {
+        "USD": { "buy": 9.20, "sell": 9.28 },
+        "EUR": { "buy": 10.35, "sell": 10.55 },
+        "RUB": { "buy": 0.100, "sell": 0.104 }
+      }
+    },
+    {
+      "id": "orienbank",
+      "name": "Ориёнбанк",
+      "updated": "2026-09-18",
+      "verified": false,
+      "rates": {
+        "USD": { "buy": 9.15, "sell": 9.30 },
+        "EUR": { "buy": 10.25, "sell": 10.60 },
+        "RUB": { "buy": 0.099, "sell": 0.105 }
+      }
+    },
+    {
+      "id": "dushanbe-city",
+      "name": "Душанбе Сити Банк",
+      "updated": "2026-09-18",
+      "verified": false,
+      "rates": {
+        "USD": { "buy": 9.19, "sell": 9.29 },
+        "EUR": { "buy": 10.30, "sell": 10.55 },
+        "RUB": { "buy": 0.100, "sell": 0.103 }
+      }
+    }
+  ]
+}

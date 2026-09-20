@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Курси Точик — курсы валют Таджикистана</title>
+    <meta
+      name="description"
+      content="Официальный курс НБТ, конвертер валют, курсы банков Таджикистана и калькулятор денежных переводов."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div class="ridge" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <div class="wrap header-row">
+        <span class="wordmark">Курси Точик</span>
+        <div class="header-meta">
+          <span id="today-date"></span>
+          <span class="header-meta__sep" aria-hidden="true"></span>
+          <span id="update-status">загрузка…</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero wrap" aria-labelledby="hero-heading">
+        <h1 id="hero-heading">Курс сомони сегодня</h1>
+        <div class="hero-figure" id="hero-figure" aria-live="polite">
+          <span class="hero-value mono" id="hero-value">— — · — —</span>
+          <span class="hero-unit">TJS за 1 доллар США</span>
+          <span class="hero-change" id="hero-change"></span>
+        </div>
+        <div class="board" id="board-row" role="list"></div>
+      </section>
+
+      <section class="panel-grid wrap">
+        <div class="panel">
+          <h2>Конвертер валют</h2>
+          <div class="converter" id="converter"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>История курса</h2>
+            <div class="tabs" id="chart-currency-tabs" role="tablist" aria-label="Валюта графика"></div>
+          </div>
+          <div class="tabs tabs--range" id="chart-range-tabs" role="tablist" aria-label="Период графика">
+            <button type="button" data-range="7" role="tab">7 дней</button>
+            <button type="button" data-range="30" role="tab" aria-selected="true">30 дней</button>
+            <button type="button" data-range="90" role="tab">90 дней</button>
+          </div>
+          <div class="chart-container" id="chart-container">
+            <p class="chart-status" id="chart-status">Загружаем историю курса…</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel wrap" id="banks-section">
+        <h2>Курсы банков Таджикистана</h2>
+        <p class="panel-note" id="banks-note"></p>
+        <div class="table-scroll">
+          <table class="rates-table" id="banks-table"></table>
+        </div>
+      </section>
+
+      <section class="panel wrap" id="transfers-section">
+        <h2>Калькулятор денежных переводов</h2>
+        <p class="panel-note" id="transfers-note"></p>
+        <div class="transfer-calc" id="transfer-calc"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p>
+          Официальный курс — Национальный банк Таджикистана
+          (<a href="https://www.nbt.tj" target="_blank" rel="noopener noreferrer">nbt.tj</a>).
+          Курсы банков и тарифы переводов вносятся вручную и могут отличаться от актуальных значений в отделениях.
+        </p>
+        <p class="muted">
+          Курси Точик — независимый некоммерческий агрегатор курсов. Не аффилирован с НБТ или упомянутыми банками
+          и платёжными системами.
+        </p>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

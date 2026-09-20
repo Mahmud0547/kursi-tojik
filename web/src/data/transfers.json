@@ -1,0 +1,41 @@
+{
+  "note": "Иллюстративные тарифные сетки для калькулятора (этап 1). Замените значениями из официальных тарифов платёжных систем перед публикацией.",
+  "systems": [
+    {
+      "id": "western-union",
+      "name": "Western Union",
+      "url": "https://www.westernunion.com",
+      "tiers": [
+        { "upTo": 100, "feePercent": 5.0, "minFee": 4 },
+        { "upTo": 300, "feePercent": 3.5, "minFee": 8 },
+        { "upTo": 1000, "feePercent": 2.2, "minFee": 12 },
+        { "upTo": 3000, "feePercent": 1.5, "minFee": 25 },
+        { "upTo": null, "feePercent": 1.0, "minFee": 35 }
+      ]
+    },
+    {
+      "id": "korona",
+      "name": "Золотая Корона",
+      "url": "https://koronapay.com",
+      "tiers": [
+        { "upTo": 100, "feePercent": 2.5, "minFee": 2 },
+        { "upTo": 300, "feePercent": 2.0, "minFee": 4 },
+        { "upTo": 1000, "feePercent": 1.5, "minFee": 7 },
+        { "upTo": 3000, "feePercent": 1.0, "minFee": 12 },
+        { "upTo": null, "feePercent": 0.7, "minFee": 20 }
+      ]
+    },
+    {
+      "id": "contact",
+      "name": "CONTACT",
+      "url": "https://contact-system.com",
+      "tiers": [
+        { "upTo": 100, "feePercent": 3.5, "minFee": 3 },
+        { "upTo": 300, "feePercent": 2.7, "minFee": 6 },
+        { "upTo": 1000, "feePercent": 1.8, "minFee": 10 },
+        { "upTo": 3000, "feePercent": 1.2, "minFee": 18 },
+        { "upTo": null, "feePercent": 0.9, "minFee": 25 }
+      ]
+    }
+  ]
+}
