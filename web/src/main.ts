@@ -4,8 +4,10 @@ import { RateChart } from "./chart";
 import { createConverter, type RateMap } from "./converter";
 import { renderBanksTable, createBankComparator, loadBanksData } from "./banks";
 import { createTransferCalculator } from "./transfers";
-import { CURRENCY_NAMES, TRACKED_CURRENCIES, type HistoryResponse, type TrackedCurrency } from "./types";
+import { TRACKED_CURRENCIES, type HistoryResponse, type TrackedCurrency } from "./types";
 import { formatFullDate, formatPercent, formatRate } from "./format";
+import { getLang, setLang, t, currencyLabel, type Lang } from "./i18n";
+import { getTheme, toggleTheme } from "./theme";
 import transfersDataRaw from "./data/transfers.json";
 import type { TransfersFile } from "./types";
 
@@ -13,7 +15,47 @@ const transfersData = transfersDataRaw as TransfersFile;
 
 const todayEl = document.getElementById("today-date")!;
 const statusEl = document.getElementById("update-status")!;
-todayEl.textContent = formatFullDate(new Date().toISOString().slice(0, 10));
+
+/** Проставляет переведённые тексты на статичные элементы разметки. */
+function applyStaticTexts() {
+  todayEl.textContent = formatFullDate(new Date().toISOString().slice(0, 10));
+  document.getElementById("hero-heading")!.textContent = t("hero.title");
+  document.getElementById("hero-unit")!.textContent = t("hero.unit");
+  document.getElementById("converter-heading")!.textContent = t("converter.title");
+  document.getElementById("chart-heading")!.textContent = t("chart.title");
+  document.getElementById("chart-currency-tabs")!.setAttribute("aria-label", t("chart.currencyTabs"));
+  document.getElementById("chart-range-tabs")!.setAttribute("aria-label", t("chart.rangeTabs"));
+  document.getElementById("banks-heading")!.textContent = t("banks.title");
+  document.getElementById("transfers-heading")!.textContent = t("transfers.title");
+  document.getElementById("chart-status")!.textContent = t("chart.loading");
+
+  const rangeLabels: Record<string, string> = { "7": t("chart.range.7"), "30": t("chart.range.30"), "90": t("chart.range.90") };
+  document.querySelectorAll<HTMLButtonElement>("#chart-range-tabs button[data-range]").forEach((btn) => {
+    btn.textContent = rangeLabels[btn.dataset.range!];
+  });
+
+  document.getElementById("footer-official")!.innerHTML =
+    `${t("footer.official")} (<a href="https://www.nbt.tj" target="_blank" rel="noopener noreferrer">nbt.tj</a>). ${t("footer.disclaimer")}`;
+  document.getElementById("footer-about")!.textContent = t("footer.about");
+
+  const langBtn = document.getElementById("lang-toggle")!;
+  langBtn.textContent = t("lang.toggle");
+  const themeBtn = document.getElementById("theme-toggle")!;
+  themeBtn.setAttribute("aria-label", t("theme.toggle"));
+  themeBtn.textContent = getTheme() === "dark" ? "☀" : "☾";
+}
+
+function setupHeaderControls() {
+  document.getElementById("lang-toggle")!.addEventListener("click", () => {
+    const next: Lang = getLang() === "tj" ? "ru" : "tj";
+    setLang(next);
+    location.reload();
+  });
+  document.getElementById("theme-toggle")!.addEventListener("click", () => {
+    toggleTheme();
+    document.getElementById("theme-toggle")!.textContent = getTheme() === "dark" ? "☀" : "☾";
+  });
+}
 
 function dayChange(history: HistoryResponse): { latest: number; prevPct: number; dir: "up" | "down" | "flat" } {
   const rates = history.rates;
@@ -32,7 +74,7 @@ async function loadBanks() {
   const tableEl = document.getElementById("banks-table") as HTMLTableElement;
   const comparatorEl = document.getElementById("bank-comparator")!;
 
-  noteEl.textContent = "Загружаем курсы банков…";
+  noteEl.textContent = t("banks.loading");
 
   try {
     const banksData = await loadBanksData();
@@ -40,13 +82,16 @@ async function loadBanks() {
     createBankComparator(comparatorEl, banksData);
   } catch (err) {
     console.error(err);
-    noteEl.textContent = "Курсы временно недоступны";
+    noteEl.textContent = t("banks.error");
     tableEl.innerHTML = "";
     comparatorEl.innerHTML = "";
   }
 }
 
 async function main() {
+  applyStaticTexts();
+  setupHeaderControls();
+
   const heroValueEl = document.getElementById("hero-value")!;
   const heroChangeEl = document.getElementById("hero-change")!;
   const boardEl = document.getElementById("board-row")!;
@@ -56,6 +101,7 @@ async function main() {
   const rangeTabsEl = document.getElementById("chart-range-tabs")!;
   const converterEl = document.getElementById("converter")!;
 
+  statusEl.textContent = t("header.status.loading");
   loadBanks();
 
   const settled = await Promise.allSettled(
@@ -68,10 +114,9 @@ async function main() {
   }
 
   if (histories.size === 0) {
-    statusEl.textContent = "нет соединения";
-    heroValueEl.textContent = "нет данных";
-    chartStatusEl.textContent =
-      "Не удалось загрузить курс НБТ. Проверьте, что Cloudflare Worker развёрнут и VITE_WORKER_URL указан верно.";
+    statusEl.textContent = t("header.status.offline");
+    heroValueEl.textContent = t("hero.noData");
+    chartStatusEl.textContent = t("chart.error");
     createTransferCalculator(
       document.getElementById("transfer-calc")!,
       document.getElementById("transfers-note")!,
@@ -81,9 +126,9 @@ async function main() {
     return;
   }
 
-  statusEl.textContent = `обновлено ${formatFullDate(
-    [...histories.values()][0].rates.slice(-1)[0].date,
-  )}`;
+  statusEl.textContent = t("header.status.updated", {
+    date: formatFullDate([...histories.values()][0].rates.slice(-1)[0].date),
+  });
 
   // --- hero (USD) ---
   const usdHistory = histories.get("USD");
@@ -115,7 +160,7 @@ async function main() {
     const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "•";
 
     cell.innerHTML = `
-      <span class="board-cell__code" title="${CURRENCY_NAMES[code]}">${code}</span>
+      <span class="board-cell__code" title="${currencyLabel(code)}">${code}</span>
       <span class="board-cell__value mono">${formatRate(latest)}</span>
       <span class="board-cell__change mono" data-dir="${dir}">${arrow} ${formatPercent(prevPct)}</span>
     `;
@@ -126,7 +171,7 @@ async function main() {
   if (Object.keys(latestRates).length === TRACKED_CURRENCIES.length) {
     createConverter(converterEl, latestRates as RateMap);
   } else {
-    converterEl.innerHTML = `<p class="panel-note">Конвертер недоступен: часть курсов не загрузилась.</p>`;
+    converterEl.innerHTML = `<p class="panel-note">${t("converter.unavailable")}</p>`;
   }
 
   // --- chart ---
@@ -184,5 +229,11 @@ async function main() {
 
 main().catch((err) => {
   console.error(err);
-  statusEl.textContent = "ошибка загрузки";
+  statusEl.textContent = t("header.status.offline");
 });
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((err) => console.error("SW registration failed", err));
+  });
+}

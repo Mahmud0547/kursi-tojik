@@ -28,6 +28,26 @@
   color-scheme: light;
 }
 
+:root[data-theme="dark"] {
+  --bg: #0c0c0f;
+  --surface: #17171c;
+  --text: #f2f2f5;
+  --text-muted: #9a9aa6;
+  --text-faint: #6e6e78;
+  --accent: #7170ff;
+  --accent-hover: #8c8bff;
+  --up: #3fc463;
+  --down: #ff6b6f;
+  --accent-text: #9c9bff;
+  --up-text: #52d474;
+  --down-text: #ff8b8e;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+
+  color-scheme: dark;
+}
+
 @font-face {
   font-family: "Inter Variable";
   src: url("/fonts/InterVariable-100.woff2") format("woff2");
@@ -126,13 +146,26 @@ button {
   letter-spacing: 0.01em;
 }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .header-meta {
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--text-muted);
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+}
+
+.header-meta #today-date,
+.header-meta #update-status {
+  white-space: nowrap;
 }
 
 .header-meta__sep {
@@ -141,6 +174,33 @@ button {
   border-radius: 50%;
   background: currentColor;
   opacity: 0.6;
+}
+
+.header-btn {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  /* touch-target ≥44px по гайдлайну Apple/WCAG */
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.header-btn--icon {
+  font-size: 15px;
+  padding: 0;
 }
 
 /* --- hero --------------------------------------------------------------- */

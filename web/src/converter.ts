@@ -1,5 +1,6 @@
-import { CURRENCY_NAMES, TRACKED_CURRENCIES, type TrackedCurrency } from "./types";
+import { TRACKED_CURRENCIES, type TrackedCurrency } from "./types";
 import { formatRate } from "./format";
+import { currencyLabel, t } from "./i18n";
 
 /** Plain period-decimal formatting suitable for an <input type="number"> value. */
 function toInputValue(n: number): string {
@@ -18,21 +19,20 @@ function tjsPerUnit(code: Code, rates: RateMap): number {
 }
 
 function label(code: Code): string {
-  if (code === "TJS") return "Сомони";
-  return CURRENCY_NAMES[code];
+  return currencyLabel(code);
 }
 
 /** Wires up a two-way currency converter into `container` using the latest fetched rates. */
 export function createConverter(container: HTMLElement, rates: RateMap) {
   container.innerHTML = `
     <div class="converter-row">
-      <input type="number" id="amt-a" class="mono" value="1" min="0" step="any" inputmode="decimal" aria-label="Сумма" />
-      <select id="cur-a" aria-label="Из валюты"></select>
+      <input type="number" id="amt-a" class="mono" value="1" min="0" step="any" inputmode="decimal" aria-label="${t("converter.amountFrom")}" />
+      <select id="cur-a" aria-label="${t("converter.from")}"></select>
     </div>
-    <button type="button" class="converter-swap" id="conv-swap" aria-label="Поменять валюты местами">⇅</button>
+    <button type="button" class="converter-swap" id="conv-swap" aria-label="${t("converter.swap")}">⇅</button>
     <div class="converter-row">
-      <input type="number" id="amt-b" class="mono" min="0" step="any" inputmode="decimal" aria-label="Результат" />
-      <select id="cur-b" aria-label="В валюту"></select>
+      <input type="number" id="amt-b" class="mono" min="0" step="any" inputmode="decimal" aria-label="${t("converter.amountTo")}" />
+      <select id="cur-b" aria-label="${t("converter.to")}"></select>
     </div>
     <p class="converter-rate" id="conv-rate-line"></p>
   `;

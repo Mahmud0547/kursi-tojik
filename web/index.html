@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="tg">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +10,9 @@
     />
     <link rel="canonical" href="https://kursi-tojik.example/" />
     <link rel="preload" href="/fonts/InterVariable-100.woff2" as="font" type="font/woff2" crossorigin />
+
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#7170ff" />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
@@ -31,20 +34,24 @@
     <header class="site-header">
       <div class="wrap header-row">
         <span class="wordmark">Курси Точик</span>
-        <div class="header-meta">
-          <span id="today-date"></span>
-          <span class="header-meta__sep" aria-hidden="true"></span>
-          <span id="update-status">загрузка…</span>
+        <div class="header-controls">
+          <div class="header-meta">
+            <span id="today-date"></span>
+            <span class="header-meta__sep" aria-hidden="true"></span>
+            <span id="update-status"></span>
+          </div>
+          <button type="button" class="header-btn" id="lang-toggle"></button>
+          <button type="button" class="header-btn header-btn--icon" id="theme-toggle" aria-label=""></button>
         </div>
       </div>
     </header>
 
     <main>
       <section class="hero wrap" aria-labelledby="hero-heading">
-        <h1 id="hero-heading">Курс сомони сегодня</h1>
+        <h1 id="hero-heading"></h1>
         <div class="hero-figure" id="hero-figure" aria-live="polite">
           <span class="hero-value mono" id="hero-value">— — · — —</span>
-          <span class="hero-unit">TJS за 1 доллар США</span>
+          <span class="hero-unit" id="hero-unit"></span>
           <span class="hero-change" id="hero-change"></span>
         </div>
         <div class="board" id="board-row" role="list"></div>
@@ -52,28 +59,28 @@
 
       <section class="panel-grid wrap">
         <div class="panel">
-          <h2>Конвертер валют</h2>
+          <h2 id="converter-heading"></h2>
           <div class="converter" id="converter"></div>
         </div>
 
         <div class="panel">
           <div class="panel-head">
-            <h2>История курса</h2>
-            <div class="tabs" id="chart-currency-tabs" role="tablist" aria-label="Валюта графика"></div>
+            <h2 id="chart-heading"></h2>
+            <div class="tabs" id="chart-currency-tabs" role="tablist"></div>
           </div>
-          <div class="tabs tabs--range" id="chart-range-tabs" role="tablist" aria-label="Период графика">
-            <button type="button" data-range="7" role="tab">7 дней</button>
-            <button type="button" data-range="30" role="tab" aria-selected="true">30 дней</button>
-            <button type="button" data-range="90" role="tab">90 дней</button>
+          <div class="tabs tabs--range" id="chart-range-tabs" role="tablist">
+            <button type="button" data-range="7" role="tab"></button>
+            <button type="button" data-range="30" role="tab" aria-selected="true"></button>
+            <button type="button" data-range="90" role="tab"></button>
           </div>
           <div class="chart-container" id="chart-container">
-            <p class="chart-status" id="chart-status">Загружаем историю курса…</p>
+            <p class="chart-status" id="chart-status"></p>
           </div>
         </div>
       </section>
 
       <section class="panel wrap" id="banks-section">
-        <h2>Курсы банков Таджикистана</h2>
+        <h2 id="banks-heading"></h2>
         <p class="panel-note" id="banks-note"></p>
         <div class="table-scroll">
           <table class="rates-table" id="banks-table"></table>
@@ -82,7 +89,7 @@
       </section>
 
       <section class="panel wrap" id="transfers-section">
-        <h2>Калькулятор денежных переводов</h2>
+        <h2 id="transfers-heading"></h2>
         <p class="panel-note" id="transfers-note"></p>
         <div class="transfer-calc" id="transfer-calc"></div>
       </section>
@@ -90,15 +97,8 @@
 
     <footer class="site-footer">
       <div class="wrap">
-        <p>
-          Официальный курс — Национальный банк Таджикистана
-          (<a href="https://www.nbt.tj" target="_blank" rel="noopener noreferrer">nbt.tj</a>).
-          Курсы банков и тарифы переводов вносятся вручную и могут отличаться от актуальных значений в отделениях.
-        </p>
-        <p class="muted">
-          Курси Точик — независимый некоммерческий агрегатор курсов. Не аффилирован с НБТ или упомянутыми банками
-          и платёжными системами.
-        </p>
+        <p id="footer-official"></p>
+        <p class="muted" id="footer-about"></p>
       </div>
     </footer>
 

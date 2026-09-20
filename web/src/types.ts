@@ -2,14 +2,6 @@ export type TrackedCurrency = "USD" | "EUR" | "RUB" | "CNY" | "KZT";
 
 export const TRACKED_CURRENCIES: TrackedCurrency[] = ["USD", "EUR", "RUB", "CNY", "KZT"];
 
-export const CURRENCY_NAMES: Record<TrackedCurrency, string> = {
-  USD: "Доллар США",
-  EUR: "Евро",
-  RUB: "Российский рубль",
-  CNY: "Китайский юань",
-  KZT: "Казахстанский тенге",
-};
-
 export interface RatePoint {
   date: string; // YYYY-MM-DD
   nominal: number;

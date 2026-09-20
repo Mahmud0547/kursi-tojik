@@ -1,6 +1,7 @@
 import type { Bank, BankRateEntry, BanksFile } from "./types";
 import { formatMoney, formatFullDate } from "./format";
 import { fetchBanks, type BankCurrency } from "./api";
+import { t } from "./i18n";
 
 const CURRENCIES = ["USD", "EUR", "RUB"] as const satisfies readonly BankCurrency[];
 
@@ -27,7 +28,7 @@ export async function loadBanksData(): Promise<BanksFile> {
     }
   }
 
-  return { note: `Наличные курсы банков, обновлено ${updated || "—"}`, banks: [...byName.values()] };
+  return { note: t("banks.note", { date: updated || "—" }), banks: [...byName.values()] };
 }
 
 /** Для каждой валюты находит лучшую цену покупки (макс.) и продажи (мин.) среди банков. */
@@ -48,12 +49,14 @@ export function renderBanksTable(table: HTMLTableElement, noteEl: HTMLElement, d
 
   const thead = document.createElement("thead");
   const headRow = document.createElement("tr");
-  headRow.innerHTML = `<th>Банк</th>` + CURRENCIES.map((c) => `<th class="mono" colspan="2">${c}</th>`).join("");
+  headRow.innerHTML =
+    `<th>${t("banks.table.bank")}</th>` + CURRENCIES.map((c) => `<th class="mono" colspan="2">${c}</th>`).join("");
   thead.appendChild(headRow);
 
   const subRow = document.createElement("tr");
   subRow.innerHTML =
-    `<th></th>` + CURRENCIES.map(() => `<th class="mono">покупка</th><th class="mono">продажа</th>`).join("");
+    `<th></th>` +
+    CURRENCIES.map(() => `<th class="mono">${t("banks.table.buy")}</th><th class="mono">${t("banks.table.sell")}</th>`).join("");
   thead.appendChild(subRow);
   table.appendChild(thead);
 
@@ -66,7 +69,7 @@ export function renderBanksTable(table: HTMLTableElement, noteEl: HTMLElement, d
     nameCell.innerHTML = `
       <div class="bank-name">
         <span>${bank.name}</span>
-        ${bank.verified ? "" : `<span class="bank-name__unverified">пример · обновлено ${formatFullDate(bank.updated)}</span>`}
+        ${bank.verified ? "" : `<span class="bank-name__unverified">${t("banks.unverified", { date: formatFullDate(bank.updated) })}</span>`}
       </div>
     `;
     tr.appendChild(nameCell);
@@ -92,15 +95,15 @@ export function renderBanksTable(table: HTMLTableElement, noteEl: HTMLElement, d
 export function createBankComparator(container: HTMLElement, data: BanksFile) {
   container.innerHTML = `
     <div class="transfer-inputs">
-      <select id="cmp-direction" aria-label="Операция">
-        <option value="buy">Хочу купить валюту</option>
-        <option value="sell">Хочу продать валюту</option>
+      <select id="cmp-direction" aria-label="${t("banks.comparator.direction")}">
+        <option value="buy">${t("banks.comparator.buy")}</option>
+        <option value="sell">${t("banks.comparator.sell")}</option>
       </select>
-      <select id="cmp-currency" aria-label="Валюта">
+      <select id="cmp-currency" aria-label="${t("banks.comparator.currency")}">
         ${CURRENCIES.map((c) => `<option value="${c}">${c}</option>`).join("")}
       </select>
-      <input type="number" id="cmp-amount" class="mono" value="100" min="0" step="any" inputmode="decimal" aria-label="Сумма" />
-      <span class="panel-note" style="margin:0">Сравните, где выгоднее купить или продать валюту</span>
+      <input type="number" id="cmp-amount" class="mono" value="100" min="0" step="any" inputmode="decimal" aria-label="${t("banks.comparator.amount")}" />
+      <span class="panel-note" style="margin:0">${t("banks.comparator.hint")}</span>
     </div>
     <div class="transfer-results" id="cmp-results"></div>
   `;
@@ -133,9 +136,9 @@ export function createBankComparator(container: HTMLElement, data: BanksFile) {
       card.innerHTML = `
         <div class="transfer-card__head">
           <span class="transfer-card__name">${bank.name}</span>
-          ${i === 0 ? `<span class="transfer-card__badge">Выгоднее всего</span>` : ""}
+          ${i === 0 ? `<span class="transfer-card__badge">${t("banks.comparator.best")}</span>` : ""}
         </div>
-        <div class="transfer-card__row"><span>Курс</span><strong>${formatMoney(rate, 4)}</strong></div>
+        <div class="transfer-card__row"><span>${t("banks.comparator.rate")}</span><strong>${formatMoney(rate, 4)}</strong></div>
         <div class="transfer-card__payout">≈ ${formatMoney(totalTJS, 2)} TJS</div>
       `;
       results.appendChild(card);
