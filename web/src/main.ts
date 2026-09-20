@@ -2,7 +2,7 @@ import "./style.css";
 import { fetchHistory } from "./api";
 import { RateChart } from "./chart";
 import { createConverter, type RateMap } from "./converter";
-import { renderBanksTable } from "./banks";
+import { renderBanksTable, createBankComparator } from "./banks";
 import { createTransferCalculator } from "./transfers";
 import { CURRENCY_NAMES, TRACKED_CURRENCIES, type HistoryResponse, type TrackedCurrency } from "./types";
 import { formatFullDate, formatPercent, formatRate } from "./format";
@@ -44,6 +44,7 @@ async function main() {
     document.getElementById("banks-note")!,
     banksData,
   );
+  createBankComparator(document.getElementById("bank-comparator")!, banksData);
 
   const settled = await Promise.allSettled(
     TRACKED_CURRENCIES.map((c) => fetchHistory(c, 95).then((h) => [c, h] as const)),

@@ -586,6 +586,26 @@ main {
   color: var(--gold);
 }
 
+.rates-table td.best {
+  color: var(--emerald-deep);
+  font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .rates-table td.best {
+    color: var(--emerald);
+  }
+}
+:root[data-theme="dark"] .rates-table td.best {
+  color: var(--emerald);
+}
+
+.bank-comparator {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--line);
+}
+
 /* --- transfer calculator --------------------------------------------------- */
 
 .transfer-calc {
