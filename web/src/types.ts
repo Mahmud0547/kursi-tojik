@@ -42,6 +42,25 @@ export interface BanksFile {
   banks: Bank[];
 }
 
+/** Один банк в ответе воркера GET /api/banks — все курсы для запрошенной валюты. */
+export interface BankApiEntry {
+  name: string;
+  interbank_buy: number;
+  interbank_sell: number;
+  cash_buy: number;
+  cash_sell: number;
+  noncash_buy: number;
+  noncash_sell: number;
+  card_buy: number;
+  card_sell: number;
+}
+
+export interface BanksApiResponse {
+  updated: string;
+  currency: string;
+  banks: BankApiEntry[];
+}
+
 export interface TransferTier {
   upTo: number | null;
   feePercent: number;

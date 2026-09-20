@@ -1,8 +1,34 @@
 import type { Bank, BankRateEntry, BanksFile } from "./types";
 import { formatMoney, formatFullDate } from "./format";
+import { fetchBanks, type BankCurrency } from "./api";
 
-const CURRENCIES = ["USD", "EUR", "RUB"] as const;
-type BankCurrency = (typeof CURRENCIES)[number];
+const CURRENCIES = ["USD", "EUR", "RUB"] as const satisfies readonly BankCurrency[];
+
+/** Загружает курсы банков (наличные) для USD/EUR/RUB через воркер и собирает их в BanksFile. */
+export async function loadBanksData(): Promise<BanksFile> {
+  const responses = await Promise.all(CURRENCIES.map((code) => fetchBanks(code)));
+
+  const byName = new Map<string, Bank>();
+  let updated = "";
+  for (let i = 0; i < CURRENCIES.length; i++) {
+    const code = CURRENCIES[i];
+    const response = responses[i];
+    updated = response.updated || updated;
+    for (const entry of response.banks) {
+      const bank = byName.get(entry.name) ?? {
+        id: entry.name,
+        name: entry.name,
+        updated: response.updated,
+        verified: true,
+        rates: {},
+      };
+      bank.rates[code] = { buy: entry.cash_buy, sell: entry.cash_sell };
+      byName.set(entry.name, bank);
+    }
+  }
+
+  return { note: `Наличные курсы банков, обновлено ${updated || "—"}`, banks: [...byName.values()] };
+}
 
 /** Для каждой валюты находит лучшую цену покупки (макс.) и продажи (мин.) среди банков. */
 function bestRates(banks: Bank[]): { buy: Partial<Record<BankCurrency, number>>; sell: Partial<Record<BankCurrency, number>> } {

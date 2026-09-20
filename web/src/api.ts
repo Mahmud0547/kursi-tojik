@@ -1,4 +1,6 @@
-import type { HistoryResponse, TrackedCurrency } from "./types";
+import type { BanksApiResponse, HistoryResponse, TrackedCurrency } from "./types";
+
+export type BankCurrency = "USD" | "EUR" | "RUB";
 
 const WORKER_URL = (import.meta.env.VITE_WORKER_URL as string | undefined)?.replace(/\/$/, "");
 
@@ -32,4 +34,20 @@ export function fetchHistory(currency: TrackedCurrency, days = 95): Promise<Hist
 
   cache.set(currency, promise);
   return promise;
+}
+
+/** Курсы коммерческих банков для одной валюты через /api/banks воркера. */
+export async function fetchBanks(currency: BankCurrency): Promise<BanksApiResponse> {
+  if (!WORKER_URL) {
+    throw new Error(
+      "VITE_WORKER_URL не задан. Укажите адрес развёрнутого Cloudflare Worker в .env (см. .env.example).",
+    );
+  }
+
+  const res = await fetch(`${WORKER_URL}/api/banks?currency=${currency}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Запрос к прокси завершился ошибкой (${res.status})`);
+  }
+  return res.json() as Promise<BanksApiResponse>;
 }

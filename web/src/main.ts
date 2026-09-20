@@ -2,15 +2,13 @@ import "./style.css";
 import { fetchHistory } from "./api";
 import { RateChart } from "./chart";
 import { createConverter, type RateMap } from "./converter";
-import { renderBanksTable, createBankComparator } from "./banks";
+import { renderBanksTable, createBankComparator, loadBanksData } from "./banks";
 import { createTransferCalculator } from "./transfers";
 import { CURRENCY_NAMES, TRACKED_CURRENCIES, type HistoryResponse, type TrackedCurrency } from "./types";
 import { formatFullDate, formatPercent, formatRate } from "./format";
-import banksDataRaw from "./data/banks.json";
 import transfersDataRaw from "./data/transfers.json";
-import type { BanksFile, TransfersFile } from "./types";
+import type { TransfersFile } from "./types";
 
-const banksData = banksDataRaw as BanksFile;
 const transfersData = transfersDataRaw as TransfersFile;
 
 const todayEl = document.getElementById("today-date")!;
@@ -28,6 +26,26 @@ function dayChange(history: HistoryResponse): { latest: number; prevPct: number;
   return { latest, prevPct: pct, dir };
 }
 
+/** Загружает курсы банков через воркер и рендерит таблицу либо заглушку об ошибке. */
+async function loadBanks() {
+  const noteEl = document.getElementById("banks-note")!;
+  const tableEl = document.getElementById("banks-table") as HTMLTableElement;
+  const comparatorEl = document.getElementById("bank-comparator")!;
+
+  noteEl.textContent = "Загружаем курсы банков…";
+
+  try {
+    const banksData = await loadBanksData();
+    renderBanksTable(tableEl, noteEl, banksData);
+    createBankComparator(comparatorEl, banksData);
+  } catch (err) {
+    console.error(err);
+    noteEl.textContent = "Курсы временно недоступны";
+    tableEl.innerHTML = "";
+    comparatorEl.innerHTML = "";
+  }
+}
+
 async function main() {
   const heroValueEl = document.getElementById("hero-value")!;
   const heroChangeEl = document.getElementById("hero-change")!;
@@ -38,13 +56,7 @@ async function main() {
   const rangeTabsEl = document.getElementById("chart-range-tabs")!;
   const converterEl = document.getElementById("converter")!;
 
-  // Banks table and transfer note don't depend on the API — render immediately.
-  renderBanksTable(
-    document.getElementById("banks-table") as HTMLTableElement,
-    document.getElementById("banks-note")!,
-    banksData,
-  );
-  createBankComparator(document.getElementById("bank-comparator")!, banksData);
+  loadBanks();
 
   const settled = await Promise.allSettled(
     TRACKED_CURRENCIES.map((c) => fetchHistory(c, 95).then((h) => [c, h] as const)),
