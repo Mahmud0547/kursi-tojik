@@ -1,70 +1,43 @@
 /* ---------------------------------------------------------------------
-   Курси Точик — design tokens
-   Palette drawn from somoni banknote colour: deep emerald + antique gold,
-   set against a cool stone paper (deliberately not the cream/terracotta
-   default). Numeric data throughout uses IBM Plex Mono, like a physical
-   currency-exchange board; Fraunces carries the few display moments.
+   Курси Точик — design tokens (Linear-style)
+   Светлая холодная палитра, единственный акцент #7170ff.
+   Токены и правила взяты из linear-design/DESIGN.md.
 --------------------------------------------------------------------- */
 
 :root {
-  --paper: #f2f4ef;
-  --paper-raised: #ffffff;
-  --ink: #15231d;
-  --ink-soft: #4b5a52;
-  --ink-faint: #7c8a82;
-  --emerald: #1e6f53;
-  --emerald-deep: #123f30;
-  --gold: #b0863a;
-  --gold-soft: #e7d3a4;
-  --up: #1e6f53;
-  --down: #a8402a;
-  --line: #d7dbd1;
-  --line-strong: #b7bfb2;
-  --shadow: 0 1px 0 rgba(21, 35, 29, 0.06);
+  --bg: #ffffff;
+  --surface: #f4f2f4;
+  --text: #080808;
+  --text-muted: #8b93a1;
+  --text-faint: #b4bcd0;
+  --accent: #7170ff;
+  --accent-hover: #828fff;
+  --up: #27a644;
+  --down: #f34e52;
+  --border: rgba(8, 8, 8, 0.08);
+  --border-strong: rgba(8, 8, 8, 0.16);
+  --shadow: 0 1px 0 rgba(8, 8, 8, 0.04);
 
-  --font-display: "Fraunces", "Iowan Old Style", serif;
-  --font-body: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+  --font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "Berkeley Mono", ui-monospace, "SF Mono", monospace;
 
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #101e18;
-    --paper-raised: #16261e;
-    --ink: #e9f0ea;
-    --ink-soft: #a7b8ae;
-    --ink-faint: #74857c;
-    --emerald: #49ab86;
-    --emerald-deep: #2c6b52;
-    --gold: #d9ae5d;
-    --gold-soft: #4a3d20;
-    --up: #49ab86;
-    --down: #e07a5f;
-    --line: #26382e;
-    --line-strong: #34493d;
-    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
-    color-scheme: dark;
-  }
+@font-face {
+  font-family: "Inter Variable";
+  src: url("/fonts/InterVariable-100.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
-:root[data-theme="dark"] {
-  --paper: #101e18;
-  --paper-raised: #16261e;
-  --ink: #e9f0ea;
-  --ink-soft: #a7b8ae;
-  --ink-faint: #74857c;
-  --emerald: #49ab86;
-  --emerald-deep: #2c6b52;
-  --gold: #d9ae5d;
-  --gold-soft: #4a3d20;
-  --up: #49ab86;
-  --down: #e07a5f;
-  --line: #26382e;
-  --line-strong: #34493d;
-  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
-  color-scheme: dark;
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("/fonts/BerkeleyMono-100.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 * {
@@ -77,9 +50,9 @@ html {
 
 body {
   margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -92,23 +65,15 @@ body {
 
 h1,
 h2 {
-  font-family: var(--font-display);
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 1.2;
   margin: 0;
-  color: var(--ink);
+  color: var(--text);
 }
 
 a {
-  color: var(--emerald-deep);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) a {
-    color: var(--gold);
-  }
-}
-:root[data-theme="dark"] a {
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .wrap {
@@ -123,7 +88,7 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -134,40 +99,11 @@ button {
   }
 }
 
-/* --- mountain ridge motif, header backdrop -------------------------- */
-
-.ridge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 220px;
-  background: var(--emerald-deep);
-  clip-path: polygon(
-    0 100%,
-    0 62%,
-    6% 48%,
-    13% 58%,
-    20% 30%,
-    28% 52%,
-    36% 20%,
-    44% 46%,
-    52% 12%,
-    60% 44%,
-    68% 24%,
-    76% 50%,
-    84% 34%,
-    92% 54%,
-    100% 40%,
-    100% 100%
-  );
-  z-index: -1;
-}
-
 /* --- header ----------------------------------------------------------- */
 
 .site-header {
   padding: 22px 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .header-row {
@@ -179,17 +115,17 @@ button {
 }
 
 .wordmark {
-  font-family: var(--font-display);
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-weight: 700;
   font-size: 22px;
-  color: #fff;
+  color: var(--text);
   letter-spacing: 0.01em;
 }
 
 .header-meta {
   font-family: var(--font-mono);
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -211,47 +147,47 @@ button {
 
 .hero h1 {
   font-size: 21px;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--text);
   font-weight: 500;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .hero-figure {
   display: flex;
   align-items: baseline;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .hero-value {
   font-size: clamp(40px, 9vw, 64px);
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  color: var(--text);
   line-height: 1;
 }
 
 .hero-unit {
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--text-muted);
 }
 
 .hero-change {
   font-family: var(--font-mono);
   font-size: 15px;
   font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
 }
 
 .hero-change[data-dir="up"] {
-  color: #bdf0da;
+  color: var(--up);
 }
 
 .hero-change[data-dir="down"] {
-  color: #ffd2c2;
+  color: var(--down);
 }
 
 /* --- exchange board row -------------------------------------------------- */
@@ -260,16 +196,16 @@ button {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 1px;
-  background: var(--line-strong);
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 9px;
   overflow: hidden;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .board-cell {
-  background: var(--paper-raised);
-  padding: 12px 14px;
+  background: var(--surface);
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -277,8 +213,10 @@ button {
 
 .board-cell__code {
   font-size: 12px;
-  color: var(--ink-soft);
+  color: var(--text-muted);
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .board-cell__value {
@@ -302,13 +240,13 @@ button {
 }
 
 .board-cell__change[data-dir="flat"] {
-  color: var(--ink-faint);
+  color: var(--text-faint);
 }
 
 /* --- panels --------------------------------------------------------------- */
 
 main {
-  background: var(--paper);
+  background: var(--bg);
 }
 
 .panel-grid {
@@ -316,12 +254,12 @@ main {
   grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
   gap: 28px;
   padding: 36px 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--border);
 }
 
 .panel {
   padding: 32px 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--border);
 }
 
 .panel-grid .panel {
@@ -335,8 +273,8 @@ main {
 }
 
 .panel-note {
-  font-size: 13.5px;
-  color: var(--ink-soft);
+  font-size: 14px;
+  color: var(--text-muted);
   margin: 0 0 18px;
   max-width: 62ch;
 }
@@ -363,17 +301,17 @@ main {
 
 .tabs button {
   background: transparent;
-  border: 1px solid var(--line-strong);
-  border-radius: 5px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
   padding: 5px 11px;
   font-size: 13px;
   cursor: pointer;
-  color: var(--ink-soft);
+  color: var(--text-muted);
 }
 
 .tabs button[aria-selected="true"] {
-  background: var(--emerald);
-  border-color: var(--emerald);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
@@ -385,17 +323,17 @@ main {
 
 .chart-container {
   position: relative;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
   padding: 10px 6px 0;
-  background: var(--paper-raised);
+  background: var(--surface);
 }
 
 .chart-status {
   margin: 0;
   padding: 70px 16px;
   text-align: center;
-  color: var(--ink-faint);
+  color: var(--text-faint);
   font-size: 14px;
 }
 
@@ -406,40 +344,40 @@ main {
 }
 
 .chart-line {
-  stroke: var(--emerald);
+  stroke: var(--accent);
   stroke-width: 2;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
 .chart-gradient-start {
-  stop-color: var(--emerald);
+  stop-color: var(--accent);
   stop-opacity: 0.22;
 }
 
 .chart-gradient-end {
-  stop-color: var(--emerald);
+  stop-color: var(--accent);
   stop-opacity: 0;
 }
 
 .chart-axis-label {
   font-family: var(--font-mono);
   font-size: 11px;
-  fill: var(--ink-faint);
+  fill: var(--text-faint);
 }
 
 .chart-axis-label--value {
-  fill: var(--ink-soft);
+  fill: var(--text-muted);
 }
 
 .chart-guide {
-  stroke: var(--line-strong);
+  stroke: var(--border-strong);
   stroke-width: 1;
 }
 
 .chart-dot {
-  fill: var(--gold);
-  stroke: var(--paper-raised);
+  fill: var(--accent);
+  stroke: var(--surface);
   stroke-width: 2;
 }
 
@@ -447,11 +385,11 @@ main {
   position: absolute;
   top: 8px;
   transform: translateX(-50%);
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--text);
+  color: var(--bg);
   padding: 6px 10px;
-  border-radius: 5px;
-  font-size: 12.5px;
+  border-radius: 6px;
+  font-size: 12px;
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -461,7 +399,7 @@ main {
 
 .chart-tooltip strong {
   font-family: var(--font-mono);
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 .chart-tooltip span {
@@ -489,44 +427,44 @@ main {
   font-family: var(--font-mono);
   font-size: 18px;
   padding: 10px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: 5px;
-  background: var(--paper-raised);
-  color: var(--ink);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
 }
 
 .converter select {
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   font-size: 14px;
   padding: 10px 8px;
-  border: 1px solid var(--line-strong);
-  border-radius: 5px;
-  background: var(--paper-raised);
-  color: var(--ink);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
   min-width: 92px;
 }
 
 .converter-swap {
   align-self: center;
   background: none;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--border-strong);
   border-radius: 50%;
   width: 34px;
   height: 34px;
   cursor: pointer;
-  color: var(--ink-soft);
+  color: var(--text-muted);
   font-size: 15px;
   line-height: 1;
 }
 
 .converter-swap:hover {
-  border-color: var(--emerald);
-  color: var(--emerald);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .converter-rate {
-  font-size: 12.5px;
-  color: var(--ink-soft);
+  font-size: 12px;
+  color: var(--text-muted);
   font-family: var(--font-mono);
   margin-top: 2px;
 }
@@ -535,22 +473,22 @@ main {
 
 .table-scroll {
   overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
 }
 
 .rates-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  background: var(--paper-raised);
+  background: var(--bg);
 }
 
 .rates-table th,
 .rates-table td {
-  padding: 11px 14px;
+  padding: 12px 16px;
   text-align: right;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
@@ -561,9 +499,11 @@ main {
 
 .rates-table thead th {
   font-weight: 500;
-  color: var(--ink-soft);
-  font-size: 12.5px;
-  border-bottom: 1px solid var(--line-strong);
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-strong);
 }
 
 .rates-table tbody tr:last-child td {
@@ -583,27 +523,18 @@ main {
 
 .bank-name__unverified {
   font-size: 11px;
-  color: var(--gold);
+  color: var(--text-muted);
 }
 
 .rates-table td.best {
-  color: var(--emerald-deep);
+  color: var(--accent);
   font-weight: 600;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .rates-table td.best {
-    color: var(--emerald);
-  }
-}
-:root[data-theme="dark"] .rates-table td.best {
-  color: var(--emerald);
 }
 
 .bank-comparator {
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px dashed var(--line);
+  border-top: 1px dashed var(--border);
 }
 
 /* --- transfer calculator --------------------------------------------------- */
@@ -626,10 +557,10 @@ main {
   font-family: var(--font-mono);
   font-size: 16px;
   padding: 10px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: 5px;
-  background: var(--paper-raised);
-  color: var(--ink);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
 }
 
 .transfer-inputs input {
@@ -644,15 +575,15 @@ main {
 }
 
 .transfer-card {
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
   padding: 16px;
-  background: var(--paper-raised);
+  background: var(--surface);
 }
 
 .transfer-card--best {
-  border-color: var(--emerald);
-  box-shadow: inset 0 0 0 1px var(--emerald);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 
 .transfer-card__head {
@@ -678,28 +609,28 @@ main {
 
 .transfer-card__badge {
   font-size: 11px;
-  color: var(--emerald);
+  color: var(--accent);
   font-weight: 600;
 }
 
 .transfer-card__row {
   display: flex;
   justify-content: space-between;
-  font-size: 13.5px;
-  color: var(--ink-soft);
+  font-size: 14px;
+  color: var(--text-muted);
   padding: 3px 0;
 }
 
 .transfer-card__row strong {
   font-family: var(--font-mono);
-  color: var(--ink);
+  color: var(--text);
   font-weight: 600;
 }
 
 .transfer-card__payout {
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px dashed var(--line);
+  border-top: 1px dashed var(--border);
   font-family: var(--font-mono);
   font-size: 17px;
   font-weight: 600;
@@ -710,8 +641,8 @@ main {
 .site-footer {
   padding: 30px 0 46px;
   font-size: 13px;
-  color: var(--ink-soft);
-  border-top: 1px solid var(--line);
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
   margin-top: 10px;
 }
 
@@ -721,7 +652,7 @@ main {
 }
 
 .site-footer .muted {
-  color: var(--ink-faint);
+  color: var(--text-faint);
 }
 
 /* --- responsive --------------------------------------------------------- */
@@ -729,9 +660,5 @@ main {
 @media (max-width: 760px) {
   .panel-grid {
     grid-template-columns: 1fr;
-  }
-
-  .ridge {
-    height: 260px;
   }
 }
