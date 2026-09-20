@@ -21,6 +21,8 @@
   --border: rgba(8, 8, 8, 0.08);
   --border-strong: rgba(8, 8, 8, 0.16);
   --shadow: 0 1px 0 rgba(8, 8, 8, 0.04);
+  --radius-sm: 6px;
+  --radius-lg: 9px;
 
   --font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "Berkeley Mono", ui-monospace, "SF Mono", monospace;
@@ -98,6 +100,7 @@ h2 {
 
 a {
   color: var(--accent);
+  transition: color 180ms ease;
 }
 
 .wrap {
@@ -143,7 +146,7 @@ button {
   font-weight: 700;
   font-size: 22px;
   color: var(--text);
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
 }
 
 .header-controls {
@@ -179,7 +182,7 @@ button {
 .header-btn {
   background: transparent;
   border: 1px solid var(--border-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
   cursor: pointer;
   font-family: var(--font-mono);
@@ -191,6 +194,7 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: border-color 180ms ease, color 180ms ease;
 }
 
 .header-btn:hover {
@@ -210,11 +214,14 @@ button {
   padding-block: 28px 8px;
 }
 
-.hero h1 {
+.hero-label {
+  display: block;
+  font-family: var(--font-sans);
   font-size: 21px;
   color: var(--text);
   font-weight: 500;
-  margin-bottom: 16px;
+  line-height: 1.2;
+  margin: 0 0 16px;
 }
 
 .hero-figure {
@@ -242,7 +249,7 @@ button {
   font-size: 15px;
   font-weight: 600;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
 }
@@ -263,8 +270,9 @@ button {
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow);
   margin-bottom: 32px;
 }
 
@@ -368,7 +376,7 @@ main {
 .tabs button {
   background: transparent;
   border: 1px solid var(--border-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 5px 11px;
   font-size: 13px;
   cursor: pointer;
@@ -378,6 +386,7 @@ main {
   align-items: center;
   justify-content: center;
   min-height: 44px;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
 }
 
 .tabs button[aria-selected="true"] {
@@ -395,9 +404,10 @@ main {
 .chart-container {
   position: relative;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: var(--radius-lg);
   padding: 10px 6px 0;
   background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .chart-status {
@@ -459,7 +469,7 @@ main {
   background: var(--text);
   color: var(--bg);
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 12px;
   display: flex;
   flex-direction: column;
@@ -499,7 +509,7 @@ main {
   font-size: 18px;
   padding: 10px 12px;
   border: 1px solid var(--border-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
 }
@@ -509,7 +519,7 @@ main {
   font-size: 14px;
   padding: 10px 8px;
   border: 1px solid var(--border-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
   /* без min-width: 0 select не сжимается ниже ширины текста опций и рвёт грид на мобильном */
@@ -528,6 +538,7 @@ main {
   color: var(--text-muted);
   font-size: 15px;
   line-height: 1;
+  transition: border-color 180ms ease, color 180ms ease;
 }
 
 .converter-swap:hover {
@@ -548,7 +559,8 @@ main {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
 }
 
 .rates-table {
@@ -582,6 +594,14 @@ main {
 
 .rates-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+.rates-table tbody tr {
+  transition: background-color 180ms ease;
+}
+
+.rates-table tbody tr:hover {
+  background: var(--surface);
 }
 
 .rates-table td.mono,
@@ -632,7 +652,7 @@ main {
   font-size: 16px;
   padding: 10px 12px;
   border: 1px solid var(--border-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
 }
@@ -650,9 +670,10 @@ main {
 
 .transfer-card {
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: var(--radius-lg);
   padding: 16px;
   background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .transfer-card--best {
@@ -675,6 +696,7 @@ main {
 .transfer-card__name a {
   color: inherit;
   text-decoration: none;
+  transition: color 180ms ease;
 }
 
 .transfer-card__name a:hover {
