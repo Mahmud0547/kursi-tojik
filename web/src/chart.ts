@@ -2,8 +2,14 @@ import type { RatePoint } from "./types";
 import { formatDateLabel, formatFullDate, formatRate } from "./format";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-const HEIGHT = 220;
+const HEIGHT_DESKTOP = 220;
+const HEIGHT_MOBILE = 150;
+const MOBILE_BREAKPOINT = 640;
 const PAD = { top: 16, right: 12, bottom: 28, left: 12 };
+
+function currentHeight(): number {
+  return window.innerWidth <= MOBILE_BREAKPOINT ? HEIGHT_MOBILE : HEIGHT_DESKTOP;
+}
 
 function el<K extends keyof SVGElementTagNameMap>(tag: K): SVGElementTagNameMap[K] {
   return document.createElementNS(SVG_NS, tag);
@@ -51,6 +57,7 @@ export class RateChart {
 
   private scale() {
     const width = Math.max(this.container.clientWidth, 240);
+    const height = currentHeight();
     const values = this.points.map((p) => p.value);
     const min = Math.min(...values);
     const max = Math.max(...values);
@@ -61,22 +68,22 @@ export class RateChart {
       PAD.left + (i / Math.max(this.points.length - 1, 1)) * (width - PAD.left - PAD.right);
     const y = (v: number) =>
       PAD.top +
-      (1 - (v - (min - vPad)) / (span + vPad * 2)) * (HEIGHT - PAD.top - PAD.bottom);
+      (1 - (v - (min - vPad)) / (span + vPad * 2)) * (height - PAD.top - PAD.bottom);
 
-    return { width, x, y, min, max };
+    return { width, height, x, y, min, max };
   }
 
   private render() {
     if (this.points.length < 2) return;
-    const { width, x, y, min, max } = this.scale();
+    const { width, height, x, y, min, max } = this.scale();
 
-    this.svg.setAttribute("viewBox", `0 0 ${width} ${HEIGHT}`);
+    this.svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
     this.svg.setAttribute("width", "100%");
-    this.svg.setAttribute("height", String(HEIGHT));
+    this.svg.setAttribute("height", String(height));
     this.svg.querySelectorAll("[data-generated]").forEach((n) => n.remove());
 
     const line = this.points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(2)},${y(p.value).toFixed(2)}`).join(" ");
-    const areaBottom = HEIGHT - PAD.bottom;
+    const areaBottom = height - PAD.bottom;
     const area = `${line} L${x(this.points.length - 1).toFixed(2)},${areaBottom} L${x(0).toFixed(2)},${areaBottom} Z`;
 
     const gradId = "chart-fill-gradient";
@@ -117,7 +124,7 @@ export class RateChart {
     // Axis: first date, last date, min/max value
     const firstLabel = el("text");
     firstLabel.setAttribute("x", String(x(0)));
-    firstLabel.setAttribute("y", String(HEIGHT - 8));
+    firstLabel.setAttribute("y", String(height - 8));
     firstLabel.setAttribute("class", "chart-axis-label");
     firstLabel.setAttribute("text-anchor", "start");
     firstLabel.setAttribute("data-generated", "1");
@@ -126,7 +133,7 @@ export class RateChart {
 
     const lastLabel = el("text");
     lastLabel.setAttribute("x", String(x(this.points.length - 1)));
-    lastLabel.setAttribute("y", String(HEIGHT - 8));
+    lastLabel.setAttribute("y", String(height - 8));
     lastLabel.setAttribute("class", "chart-axis-label");
     lastLabel.setAttribute("text-anchor", "end");
     lastLabel.setAttribute("data-generated", "1");
@@ -144,7 +151,7 @@ export class RateChart {
 
     const minLabel = el("text");
     minLabel.setAttribute("x", String(width - PAD.right));
-    minLabel.setAttribute("y", String(HEIGHT - PAD.bottom - 4));
+    minLabel.setAttribute("y", String(height - PAD.bottom - 4));
     minLabel.setAttribute("class", "chart-axis-label chart-axis-label--value");
     minLabel.setAttribute("text-anchor", "end");
     minLabel.setAttribute("data-generated", "1");
@@ -160,7 +167,7 @@ export class RateChart {
 
   private onMove(e: PointerEvent) {
     if (this.points.length < 2) return;
-    const { width, x, y } = this.scale();
+    const { width, height, x, y } = this.scale();
     const rect = this.svg.getBoundingClientRect();
     const relX = ((e.clientX - rect.left) / rect.width) * width;
     const ratio = (relX - PAD.left) / (width - PAD.left - PAD.right);
@@ -171,7 +178,7 @@ export class RateChart {
     this.guide.setAttribute("x1", String(x(clamped)));
     this.guide.setAttribute("x2", String(x(clamped)));
     this.guide.setAttribute("y1", String(PAD.top));
-    this.guide.setAttribute("y2", String(HEIGHT - PAD.bottom));
+    this.guide.setAttribute("y2", String(height - PAD.bottom));
     this.guide.style.display = "";
 
     this.dot.setAttribute("cx", String(x(clamped)));
