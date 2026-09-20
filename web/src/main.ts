@@ -1,4 +1,6 @@
 import "./style.css";
+import autoAnimate from "@formkit/auto-animate";
+import { animate } from "motion";
 import { fetchHistory } from "./api";
 import { RateChart } from "./chart";
 import { createConverter, type RateMap } from "./converter";
@@ -15,6 +17,14 @@ const transfersData = transfersDataRaw as TransfersFile;
 
 const todayEl = document.getElementById("today-date")!;
 const statusEl = document.getElementById("update-status")!;
+
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Плавное появление элемента снизу вверх (пропускается при prefers-reduced-motion). */
+function fadeInUp(el: HTMLElement, delay = 0) {
+  if (prefersReducedMotion) return;
+  animate(el, { opacity: [0, 1], y: [20, 0] }, { duration: 0.6, delay, ease: "easeOut" });
+}
 
 /** Проставляет переведённые тексты на статичные элементы разметки. */
 function applyStaticTexts() {
@@ -80,6 +90,8 @@ async function loadBanks() {
     const banksData = await loadBanksData();
     renderBanksTable(tableEl, noteEl, banksData);
     createBankComparator(comparatorEl, banksData);
+    const tbody = tableEl.querySelector("tbody");
+    if (tbody) autoAnimate(tbody);
   } catch (err) {
     console.error(err);
     noteEl.textContent = t("banks.error");
@@ -137,12 +149,13 @@ async function main() {
     heroValueEl.textContent = formatRate(latest);
     heroChangeEl.textContent = formatPercent(prevPct);
     heroChangeEl.dataset.dir = dir;
+    fadeInUp(heroValueEl);
   }
 
   // --- exchange board row ---
   boardEl.innerHTML = "";
   const latestRates: Partial<RateMap> = {};
-  for (const code of TRACKED_CURRENCIES) {
+  for (const [index, code] of TRACKED_CURRENCIES.entries()) {
     const history = histories.get(code);
     const cell = document.createElement("div");
     cell.className = "board-cell";
@@ -151,6 +164,7 @@ async function main() {
     if (!history) {
       cell.innerHTML = `<span class="board-cell__code">${code}</span><span class="board-cell__value">—</span>`;
       boardEl.appendChild(cell);
+      fadeInUp(cell, index * 0.06);
       continue;
     }
 
@@ -165,6 +179,7 @@ async function main() {
       <span class="board-cell__change mono" data-dir="${dir}">${arrow} ${formatPercent(prevPct)}</span>
     `;
     boardEl.appendChild(cell);
+    fadeInUp(cell, index * 0.06);
   }
 
   // --- converter ---
