@@ -29,6 +29,7 @@ export class RateChart {
     this.container = container;
     this.svg = el("svg");
     this.svg.setAttribute("class", "chart-svg");
+    this.svg.setAttribute("aria-hidden", "true");
     this.guide = el("line");
     this.guide.setAttribute("class", "chart-guide");
     this.dot = el("circle");
