@@ -8,12 +8,16 @@
   --bg: #ffffff;
   --surface: #f4f2f4;
   --text: #080808;
-  --text-muted: #8b93a1;
-  --text-faint: #b4bcd0;
+  --text-muted: #676d77; /* затемнено с #8b93a1 для контраста WCAG AA (было 2.8:1 на surface, стало 4.7:1) */
+  --text-faint: #686d79; /* затемнено с #b4bcd0 для контраста WCAG AA (было 1.7:1 на surface, стало 4.6:1) */
   --accent: #7170ff;
   --accent-hover: #828fff;
   --up: #27a644;
   --down: #f34e52;
+  /* затемнённые варианты для мелкого цветного текста (бейджи, лучшая цена, проценты) — контраст ≥4.5:1 по WCAG AA */
+  --accent-text: #605fd9;
+  --up-text: #1e7f34;
+  --down-text: #c53f42;
   --border: rgba(8, 8, 8, 0.08);
   --border-strong: rgba(8, 8, 8, 0.16);
   --shadow: 0 1px 0 rgba(8, 8, 8, 0.04);
@@ -183,11 +187,11 @@ button {
 }
 
 .hero-change[data-dir="up"] {
-  color: var(--up);
+  color: var(--up-text);
 }
 
 .hero-change[data-dir="down"] {
-  color: var(--down);
+  color: var(--down-text);
 }
 
 /* --- exchange board row -------------------------------------------------- */
@@ -232,11 +236,11 @@ button {
 }
 
 .board-cell__change[data-dir="up"] {
-  color: var(--up);
+  color: var(--up-text);
 }
 
 .board-cell__change[data-dir="down"] {
-  color: var(--down);
+  color: var(--down-text);
 }
 
 .board-cell__change[data-dir="flat"] {
@@ -527,7 +531,7 @@ main {
 }
 
 .rates-table td.best {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
 }
 
@@ -609,7 +613,7 @@ main {
 
 .transfer-card__badge {
   font-size: 11px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
 }
 
