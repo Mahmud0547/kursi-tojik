@@ -454,7 +454,6 @@ main {
   color: var(--text);
   /* без min-width: 0 select не сжимается ниже ширины текста опций и рвёт грид на мобильном */
   min-width: 0;
-  flex: 0 1 92px;
 }
 
 .converter-swap {
