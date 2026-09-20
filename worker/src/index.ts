@@ -6,7 +6,8 @@
  * browser can't read it directly. This worker fetches it server-side,
  * decodes and reshapes it to JSON, and caches the result at the edge.
  *
- * Single route: GET /api/history?cs=USD&days=90
+ * Routes: GET /api/history?cs=USD&days=90
+ *         GET /api/banks?currency=USD
  */
 
 interface RateRecord {
@@ -15,7 +16,20 @@ interface RateRecord {
   value: number;
 }
 
+interface BankRates {
+  name: string;
+  interbank_buy: number;
+  interbank_sell: number;
+  cash_buy: number;
+  cash_sell: number;
+  noncash_buy: number;
+  noncash_sell: number;
+  card_buy: number;
+  card_sell: number;
+}
+
 const ALLOWED_CURRENCIES = new Set(["USD", "EUR", "RUB", "CNY", "KZT"]);
+const BANKS_ALLOWED_CURRENCIES = new Set(["USD", "EUR", "RUB"]);
 const NBT_HOST = "https://www.nbt.tj";
 const EDGE_CACHE_SECONDS = 1800; // 30 min — NBT publishes once per business day
 const UPSTREAM_TIMEOUT_MS = 10_000;
@@ -119,6 +133,84 @@ async function handleHistory(url: URL): Promise<Response> {
   );
 }
 
+/** Убирает HTML-теги (нули на странице завёрнуты в <span>) и декодирует базовые сущности. */
+function cellText(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, "")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .trim();
+}
+
+/**
+ * Парсит HTML-таблицу курсов коммерческих банков nbt.tj.
+ * Столбцы после названия банка (харид/фурӯш каждая): байнибонкӣ, нақдӣ,
+ * ғайринақдӣ, ҳамёни электронӣ, кортҳо, ММПИМ, затем дата обновления.
+ * В результат идут только байнибонкӣ/нақдӣ/ғайринақдӣ/кортҳо.
+ */
+function parseBanks(html: string): { updated: string; banks: BankRates[] } {
+  const table = /<table>([\s\S]*?)<\/table>/.exec(html)?.[1] ?? "";
+  const rows = table.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+
+  let updated = "";
+  const banks: BankRates[] = [];
+
+  for (const row of rows) {
+    const cells = [...row.matchAll(/<td>([\s\S]*?)<\/td>/g)].map((m) => cellText(m[1]));
+    if (cells.length < 14) continue; // строка заголовка (th, не td)
+
+    const nums = cells.slice(1, 13).map((c) => parseFloat(c));
+    if (nums.some((n) => !Number.isFinite(n))) continue;
+
+    const [interbank_buy, interbank_sell, cash_buy, cash_sell, noncash_buy, noncash_sell, , , card_buy, card_sell] =
+      nums;
+    const rates = { interbank_buy, interbank_sell, cash_buy, cash_sell, noncash_buy, noncash_sell, card_buy, card_sell };
+    if (Object.values(rates).every((v) => v === 0)) continue;
+
+    updated = cells[13] || updated;
+    banks.push({ name: cells[0], ...rates });
+  }
+
+  return { updated, banks };
+}
+
+async function handleBanks(url: URL): Promise<Response> {
+  const currency = (url.searchParams.get("currency") || "USD").toUpperCase();
+  if (!BANKS_ALLOWED_CURRENCIES.has(currency)) {
+    return jsonResponse(
+      { error: `Unsupported currency "${currency}". Allowed: ${[...BANKS_ALLOWED_CURRENCIES].join(", ")}` },
+      400,
+    );
+  }
+
+  const nbtUrl = `${NBT_HOST}/tj/kurs/kurs_kommer_bank.php?currency=${currency}`;
+
+  let upstream: Response;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+    upstream = await fetch(nbtUrl, {
+      signal: controller.signal,
+      cf: { cacheTtl: EDGE_CACHE_SECONDS, cacheEverything: true },
+    });
+    clearTimeout(timeout);
+  } catch (err) {
+    return jsonResponse({ error: "Upstream NBT request failed", detail: String(err) }, 502);
+  }
+
+  if (!upstream.ok) {
+    return jsonResponse({ error: `NBT responded with ${upstream.status}` }, 502);
+  }
+
+  const html = await upstream.text();
+  const { updated, banks } = parseBanks(html);
+  if (banks.length === 0) {
+    return jsonResponse({ error: "NBT returned no parsable bank rates" }, 502);
+  }
+
+  return jsonResponse({ updated, currency, banks }, 200, { "Cache-Control": `public, max-age=${EDGE_CACHE_SECONDS}` });
+}
+
 export default {
   async fetch(request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -143,10 +235,26 @@ export default {
       return response;
     }
 
+    if (url.pathname === "/api/banks") {
+      const cache = caches.default;
+      const cacheKey = new Request(url.toString(), request);
+      const cached = await cache.match(cacheKey);
+      if (cached) return cached;
+
+      const response = await handleBanks(url);
+      if (response.status === 200) {
+        ctx.waitUntil(cache.put(cacheKey, response.clone()));
+      }
+      return response;
+    }
+
     if (url.pathname === "/" || url.pathname === "/api") {
       return jsonResponse({
         service: "kursi-tojik-proxy",
-        endpoints: ["/api/history?cs=USD&days=90 (currencies: USD, EUR, RUB, CNY, KZT)"],
+        endpoints: [
+          "/api/history?cs=USD&days=90 (currencies: USD, EUR, RUB, CNY, KZT)",
+          "/api/banks?currency=USD (currencies: USD, EUR, RUB)",
+        ],
       });
     }
 
