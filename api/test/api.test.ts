@@ -17,7 +17,7 @@ describe("before any collection", () => {
   });
 
   it("health reports stale data and no bot", async () => {
-    expect(await (await call("/api/health")).json()).toMatchObject({ latestDate: null, stale: true, bot: false });
+    expect(await (await call("/api/health")).json()).toMatchObject({ latestDate: null, stale: true, bot: false, botUsername: null });
   });
 });
 
@@ -78,6 +78,14 @@ describe("CORS and headers", () => {
     const response = await call("/api/health");
     expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(response.headers.get("Strict-Transport-Security")).toContain("max-age");
+  });
+});
+
+describe("bot status", () => {
+  it("is live only with a token, a webhook secret and a username", async () => {
+    const live = { ...env, TELEGRAM_BOT_TOKEN: "123:abc", BOT_USERNAME: "kursi_tojik_bot" };
+    expect(await (await call("/api/health", {}, live)).json()).toMatchObject({ bot: true, botUsername: "kursi_tojik_bot" });
+    expect(await (await call("/api/health", {}, { ...env, TELEGRAM_BOT_TOKEN: "123:abc" })).json()).toMatchObject({ bot: false });
   });
 });
 

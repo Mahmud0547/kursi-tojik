@@ -90,7 +90,8 @@ app.get("/api/health", async (c) => {
     latestDate: latest?.date ?? null,
     stale: ageDays === null || ageDays > STALE_AFTER_DAYS,
     lastRun: run ? { at: run.ranAt, ok: run.ok === 1 } : null,
-    bot: Boolean(c.env.TELEGRAM_BOT_TOKEN && c.env.TELEGRAM_WEBHOOK_SECRET),
+    bot: Boolean(c.env.TELEGRAM_BOT_TOKEN && c.env.TELEGRAM_WEBHOOK_SECRET && c.env.BOT_USERNAME),
+    botUsername: c.env.BOT_USERNAME ?? null,
   });
 });
 

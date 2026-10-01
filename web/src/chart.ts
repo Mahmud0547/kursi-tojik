@@ -1,203 +1,87 @@
-import type { RatePoint } from "./types";
-import { formatDateLabel, formatFullDate, formatRate } from "./format";
+import { formatDate, formatDay, formatRate } from "./format";
+import type { Lang } from "./i18n";
+import type { HistoryPoint } from "./types";
 
-const SVG_NS = "http://www.w3.org/2000/svg";
-const HEIGHT_DESKTOP = 220;
-const HEIGHT_MOBILE = 150;
-const MOBILE_BREAKPOINT = 640;
-const PAD = { top: 16, right: 12, bottom: 28, left: 12 };
+const SVG = "http://www.w3.org/2000/svg";
+const PAD = { top: 12, right: 8, bottom: 26, left: 8 };
 
-function currentHeight(): number {
-  return window.innerWidth <= MOBILE_BREAKPOINT ? HEIGHT_MOBILE : HEIGHT_DESKTOP;
+function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>): SVGElementTagNameMap[K] {
+  const element = document.createElementNS(SVG, tag);
+  for (const [name, value] of Object.entries(attrs)) element.setAttribute(name, String(value));
+  return element;
 }
 
-function el<K extends keyof SVGElementTagNameMap>(tag: K): SVGElementTagNameMap[K] {
-  return document.createElementNS(SVG_NS, tag);
-}
-
-/** Renders a hand-built line chart (no charting library) for one currency's rate history. */
+/** A hand-built SVG line chart (no chart library): line, light grid, first/last date labels and a pointer tooltip. */
 export class RateChart {
-  private container: HTMLElement;
-  private svg: SVGSVGElement;
-  private guide: SVGLineElement;
-  private dot: SVGCircleElement;
-  private tooltip: HTMLDivElement;
-  private points: RatePoint[] = [];
-  private ro: ResizeObserver;
+  private points: { date: string; perUnit: number }[] = [];
+  private readonly tooltip: HTMLDivElement;
 
-  constructor(container: HTMLElement) {
-    this.container = container;
-    this.svg = el("svg");
-    this.svg.setAttribute("class", "chart-svg");
-    this.svg.setAttribute("aria-hidden", "true");
-    this.guide = el("line");
-    this.guide.setAttribute("class", "chart-guide");
-    this.dot = el("circle");
-    this.dot.setAttribute("r", "4.5");
-    this.dot.setAttribute("class", "chart-dot");
-
+  constructor(private readonly container: HTMLElement, private readonly lang: Lang) {
     this.tooltip = document.createElement("div");
-    this.tooltip.className = "chart-tooltip";
+    this.tooltip.className = "chart__tooltip";
     this.tooltip.hidden = true;
-
-    container.innerHTML = "";
-    container.appendChild(this.svg);
-    container.appendChild(this.tooltip);
-
-    this.svg.addEventListener("pointermove", (e) => this.onMove(e));
-    this.svg.addEventListener("pointerleave", () => this.hideCursor());
-
-    this.ro = new ResizeObserver(() => this.render());
-    this.ro.observe(container);
+    new ResizeObserver(() => this.render()).observe(container);
   }
 
-  setData(points: RatePoint[]) {
-    this.points = points;
+  setData(history: HistoryPoint[]): void {
+    this.points = history.map((p) => ({ date: p.date, perUnit: p.value / p.nominal }));
     this.render();
   }
 
-  private scale() {
-    const width = Math.max(this.container.clientWidth, 240);
-    const height = currentHeight();
-    const values = this.points.map((p) => p.value);
+  private render(): void {
+    const width = Math.max(this.container.clientWidth, 200);
+    const height = this.container.clientHeight || 220;
+    const root = svg("svg", { viewBox: `0 0 ${width} ${height}`, width, height, class: "chart__svg", "aria-hidden": "true" });
+    this.container.replaceChildren(root, this.tooltip);
+    if (this.points.length < 2) return;
+
+    const values = this.points.map((p) => p.perUnit);
     const min = Math.min(...values);
     const max = Math.max(...values);
-    const span = max - min || max * 0.01 || 1;
-    const vPad = span * 0.15;
+    const span = max - min || max * 0.001;
+    const x = (i: number) => PAD.left + (i / (this.points.length - 1)) * (width - PAD.left - PAD.right);
+    const y = (v: number) => PAD.top + (1 - (v - min) / span) * (height - PAD.top - PAD.bottom);
 
-    const x = (i: number) =>
-      PAD.left + (i / Math.max(this.points.length - 1, 1)) * (width - PAD.left - PAD.right);
-    const y = (v: number) =>
-      PAD.top +
-      (1 - (v - (min - vPad)) / (span + vPad * 2)) * (height - PAD.top - PAD.bottom);
-
-    return { width, height, x, y, min, max };
-  }
-
-  private render() {
-    if (this.points.length < 2) return;
-    const { width, height, x, y, min, max } = this.scale();
-
-    this.svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-    this.svg.setAttribute("width", "100%");
-    this.svg.setAttribute("height", String(height));
-    this.svg.querySelectorAll("[data-generated]").forEach((n) => n.remove());
-
-    const line = this.points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(2)},${y(p.value).toFixed(2)}`).join(" ");
-    const areaBottom = height - PAD.bottom;
-    const area = `${line} L${x(this.points.length - 1).toFixed(2)},${areaBottom} L${x(0).toFixed(2)},${areaBottom} Z`;
-
-    const gradId = "chart-fill-gradient";
-    let defs = this.svg.querySelector("defs");
-    if (!defs) {
-      defs = el("defs");
-      const gradient = el("linearGradient");
-      gradient.id = gradId;
-      gradient.setAttribute("x1", "0");
-      gradient.setAttribute("y1", "0");
-      gradient.setAttribute("x2", "0");
-      gradient.setAttribute("y2", "1");
-      const stop1 = el("stop");
-      stop1.setAttribute("offset", "0%");
-      stop1.setAttribute("class", "chart-gradient-start");
-      const stop2 = el("stop");
-      stop2.setAttribute("offset", "100%");
-      stop2.setAttribute("class", "chart-gradient-end");
-      gradient.appendChild(stop1);
-      gradient.appendChild(stop2);
-      defs.appendChild(gradient);
-      this.svg.appendChild(defs);
+    for (let i = 0; i <= 3; i++) {
+      const gy = PAD.top + (i / 3) * (height - PAD.top - PAD.bottom);
+      root.append(svg("line", { x1: PAD.left, x2: width - PAD.right, y1: gy, y2: gy, class: "chart__grid" }));
     }
+    const path = this.points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.perUnit).toFixed(1)}`).join(" ");
+    root.append(svg("path", { d: `${path} L${x(this.points.length - 1)},${height - PAD.bottom} L${x(0)},${height - PAD.bottom} Z`, class: "chart__area" }));
+    root.append(svg("path", { d: path, class: "chart__line" }));
 
-    const areaPath = el("path");
-    areaPath.setAttribute("d", area);
-    areaPath.setAttribute("fill", `url(#${gradId})`);
-    areaPath.setAttribute("data-generated", "1");
-    this.svg.appendChild(areaPath);
+    const first = this.points[0]!;
+    const last = this.points[this.points.length - 1]!;
+    const label = (text: string, lx: number, anchor: string) => {
+      const t = svg("text", { x: lx, y: height - 6, "text-anchor": anchor, class: "chart__label" });
+      t.textContent = text;
+      root.append(t);
+    };
+    label(formatDay(first.date, this.lang), PAD.left, "start");
+    label(formatDay(last.date, this.lang), width - PAD.right, "end");
 
-    const linePath = el("path");
-    linePath.setAttribute("d", line);
-    linePath.setAttribute("class", "chart-line");
-    linePath.setAttribute("fill", "none");
-    linePath.setAttribute("data-generated", "1");
-    this.svg.appendChild(linePath);
+    const guide = svg("line", { y1: PAD.top, y2: height - PAD.bottom, class: "chart__guide", visibility: "hidden" });
+    const dot = svg("circle", { r: 4.5, class: "chart__dot", visibility: "hidden" });
+    root.append(guide, dot);
 
-    // Axis: first date, last date, min/max value
-    const firstLabel = el("text");
-    firstLabel.setAttribute("x", String(x(0)));
-    firstLabel.setAttribute("y", String(height - 8));
-    firstLabel.setAttribute("class", "chart-axis-label");
-    firstLabel.setAttribute("text-anchor", "start");
-    firstLabel.setAttribute("data-generated", "1");
-    firstLabel.textContent = formatDateLabel(this.points[0].date);
-    this.svg.appendChild(firstLabel);
-
-    const lastLabel = el("text");
-    lastLabel.setAttribute("x", String(x(this.points.length - 1)));
-    lastLabel.setAttribute("y", String(height - 8));
-    lastLabel.setAttribute("class", "chart-axis-label");
-    lastLabel.setAttribute("text-anchor", "end");
-    lastLabel.setAttribute("data-generated", "1");
-    lastLabel.textContent = formatDateLabel(this.points[this.points.length - 1].date);
-    this.svg.appendChild(lastLabel);
-
-    const maxLabel = el("text");
-    maxLabel.setAttribute("x", String(width - PAD.right));
-    maxLabel.setAttribute("y", String(PAD.top + 4));
-    maxLabel.setAttribute("class", "chart-axis-label chart-axis-label--value");
-    maxLabel.setAttribute("text-anchor", "end");
-    maxLabel.setAttribute("data-generated", "1");
-    maxLabel.textContent = formatRate(max);
-    this.svg.appendChild(maxLabel);
-
-    const minLabel = el("text");
-    minLabel.setAttribute("x", String(width - PAD.right));
-    minLabel.setAttribute("y", String(height - PAD.bottom - 4));
-    minLabel.setAttribute("class", "chart-axis-label chart-axis-label--value");
-    minLabel.setAttribute("text-anchor", "end");
-    minLabel.setAttribute("data-generated", "1");
-    minLabel.textContent = formatRate(min);
-    this.svg.appendChild(minLabel);
-
-    this.guide.remove();
-    this.dot.remove();
-    this.svg.appendChild(this.guide);
-    this.svg.appendChild(this.dot);
-    this.hideCursor();
-  }
-
-  private onMove(e: PointerEvent) {
-    if (this.points.length < 2) return;
-    const { width, height, x, y } = this.scale();
-    const rect = this.svg.getBoundingClientRect();
-    const relX = ((e.clientX - rect.left) / rect.width) * width;
-    const ratio = (relX - PAD.left) / (width - PAD.left - PAD.right);
-    const i = Math.round(ratio * (this.points.length - 1));
-    const clamped = Math.min(Math.max(i, 0), this.points.length - 1);
-    const p = this.points[clamped];
-
-    this.guide.setAttribute("x1", String(x(clamped)));
-    this.guide.setAttribute("x2", String(x(clamped)));
-    this.guide.setAttribute("y1", String(PAD.top));
-    this.guide.setAttribute("y2", String(height - PAD.bottom));
-    this.guide.style.display = "";
-
-    this.dot.setAttribute("cx", String(x(clamped)));
-    this.dot.setAttribute("cy", String(y(p.value)));
-    this.dot.style.display = "";
-
-    this.tooltip.hidden = false;
-    this.tooltip.style.left = `${(x(clamped) / width) * 100}%`;
-    this.tooltip.innerHTML = `<strong>${formatRate(p.value)}</strong><span>${formatFullDate(p.date)}</span>`;
-  }
-
-  private hideCursor() {
-    this.guide.style.display = "none";
-    this.dot.style.display = "none";
-    this.tooltip.hidden = true;
-  }
-
-  destroy() {
-    this.ro.disconnect();
+    const hide = () => {
+      guide.setAttribute("visibility", "hidden");
+      dot.setAttribute("visibility", "hidden");
+      this.tooltip.hidden = true;
+    };
+    root.addEventListener("pointerleave", hide);
+    root.addEventListener("pointermove", (event) => {
+      const box = root.getBoundingClientRect();
+      const ratio = (event.clientX - box.left - PAD.left) / (box.width - PAD.left - PAD.right);
+      const i = Math.min(this.points.length - 1, Math.max(0, Math.round(ratio * (this.points.length - 1))));
+      const p = this.points[i]!;
+      for (const [el, attrs] of [[guide, { x1: x(i), x2: x(i) }], [dot, { cx: x(i), cy: y(p.perUnit) }]] as const) {
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+        el.setAttribute("visibility", "visible");
+      }
+      this.tooltip.textContent = `${formatDate(p.date, this.lang)} · ${formatRate(p.perUnit, this.lang)}`;
+      this.tooltip.hidden = false;
+      this.tooltip.classList.toggle("chart__tooltip--left", x(i) > width / 2);
+    });
   }
 }

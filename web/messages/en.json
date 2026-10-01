@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "title": "Kursi Tojik — today's official Tajik somoni rate",
+    "description": "Official National Bank of Tajikistan rates, a currency converter, rate history and bank cash rates. Data from nbt.tj."
+  },
+  "brand": "Kursi Tojik",
+  "nav": { "language": "Language", "skip": "Skip to content" },
+  "hero": {
+    "badge": "Official National Bank rate · {date}",
+    "title": "Somoni rate today",
+    "unit": "TJS per 1 US dollar",
+    "change": "compared with {date}",
+    "loading": "Loading the rate…",
+    "error": "The data could not be loaded right now. Please refresh the page."
+  },
+  "converter": {
+    "title": "Currency converter",
+    "amount": "Amount",
+    "result": "Result",
+    "from": "From currency",
+    "to": "To currency",
+    "swap": "Swap currencies",
+    "note": "At the official National Bank rate. Banks may use a different rate.",
+    "invalid": "Enter the amount in digits, for example 100 or 1,250.50"
+  },
+  "board": { "title": "Official rates", "source": "Source: National Bank of Tajikistan · {date}", "unchanged": "unchanged" },
+  "chart": {
+    "title": "Rate history",
+    "currency": "Chart currency",
+    "range": "Period",
+    "days7": "7 days",
+    "days30": "30 days",
+    "days90": "90 days",
+    "days365": "1 year",
+    "summary": "{code}: from {from} to {to} TJS, {start} – {end}",
+    "error": "The rate history could not be loaded."
+  },
+  "banks": {
+    "title": "Bank cash rates",
+    "currency": "Currency",
+    "bank": "Bank",
+    "buy": "Buy",
+    "sell": "Sell",
+    "buyHint": "the bank buys from you",
+    "sellHint": "the bank sells to you",
+    "best": "best",
+    "updated": "From the National Bank website, updated {date}",
+    "error": "Bank rates could not be loaded.",
+    "showAll": "All banks ({count})",
+    "showLess": "Show fewer",
+    "empty": "No data right now."
+  },
+  "bot": {
+    "title": "Rates in Telegram",
+    "text": "Send the bot “100 usd” and it converts to somoni right away. Every morning at 9:00 it sends the new rate.",
+    "open": "Open the bot"
+  },
+  "footer": {
+    "source": "Official rates and bank rates come from the National Bank of Tajikistan website (nbt.tj), with their own update time.",
+    "independent": "Independent project, not affiliated with the National Bank or any bank. No cookies, no analytics.",
+    "code": "Source code on GitHub"
+  },
+  "currency": {
+    "TJS": "Somoni",
+    "USD": "US dollar",
+    "EUR": "Euro",
+    "RUB": "Russian ruble",
+    "CNY": "Chinese yuan",
+    "KZT": "Kazakhstani tenge",
+    "KGS": "Kyrgyz som",
+    "UZS": "Uzbek sum",
+    "GBP": "British pound"
+  }
+}

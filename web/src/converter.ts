@@ -1,90 +1,47 @@
-import { TRACKED_CURRENCIES, type TrackedCurrency } from "./types";
-import { formatRate } from "./format";
-import { currencyLabel, t } from "./i18n";
+import { byId, h, storage } from "./dom";
+import { formatMoney } from "./format";
+import { currencyName, type Lang } from "./i18n";
+import { convert, parseAmount, type Rate } from "./money";
+import { TRACKED } from "./board";
+import type { LatestRate } from "./types";
 
-/** Plain period-decimal formatting suitable for an <input type="number"> value. */
-function toInputValue(n: number): string {
-  return (Math.round(n * 10000) / 10000).toString();
-}
+const STORAGE_KEY = "converter";
 
-export type RateMap = Record<TrackedCurrency, { value: number; nominal: number }>;
+/** Fills the converter selects (TJS and tracked currencies first) and keeps the result up to date. */
+export function setupConverter(rates: LatestRate[], lang: Lang): void {
+  const amount = byId<HTMLInputElement>("amount");
+  const from = byId<HTMLSelectElement>("from");
+  const to = byId<HTMLSelectElement>("to");
+  const result = byId<HTMLOutputElement>("result");
+  const error = byId("amount-error");
 
-const ALL_CODES = ["TJS", ...TRACKED_CURRENCIES] as const;
-type Code = (typeof ALL_CODES)[number];
+  const byCode: Record<string, Rate> = Object.fromEntries(rates.map((r) => [r.code, r]));
+  const others = rates.map((r) => r.code).filter((c) => !(TRACKED as readonly string[]).includes(c)).sort();
+  const codes = ["TJS", ...TRACKED.filter((c) => byCode[c]), ...others];
+  const names = Object.fromEntries(rates.map((r) => [r.code, r.name]));
+  const options = () => codes.map((code) => h("option", { text: `${code} · ${currencyName(lang, code, names[code] ?? code)}`, attrs: { value: code } }));
+  from.replaceChildren(...options());
+  to.replaceChildren(...options());
 
-function tjsPerUnit(code: Code, rates: RateMap): number {
-  if (code === "TJS") return 1;
-  const r = rates[code];
-  return r.value / r.nominal;
-}
+  const saved = storage.get(STORAGE_KEY)?.split(":");
+  from.value = saved?.[0] && codes.includes(saved[0]) ? saved[0] : "USD";
+  to.value = saved?.[1] && codes.includes(saved[1]) ? saved[1] : "TJS";
 
-function label(code: Code): string {
-  return currencyLabel(code);
-}
-
-/** Wires up a two-way currency converter into `container` using the latest fetched rates. */
-export function createConverter(container: HTMLElement, rates: RateMap) {
-  container.innerHTML = `
-    <div class="converter-row">
-      <input type="number" id="amt-a" class="mono" value="1" min="0" step="any" inputmode="decimal" aria-label="${t("converter.amountFrom")}" />
-      <select id="cur-a" aria-label="${t("converter.from")}"></select>
-    </div>
-    <button type="button" class="converter-swap" id="conv-swap" aria-label="${t("converter.swap")}">⇅</button>
-    <div class="converter-row">
-      <input type="number" id="amt-b" class="mono" min="0" step="any" inputmode="decimal" aria-label="${t("converter.amountTo")}" />
-      <select id="cur-b" aria-label="${t("converter.to")}"></select>
-    </div>
-    <p class="converter-rate" id="conv-rate-line"></p>
-  `;
-
-  const amtA = container.querySelector<HTMLInputElement>("#amt-a")!;
-  const amtB = container.querySelector<HTMLInputElement>("#amt-b")!;
-  const curA = container.querySelector<HTMLSelectElement>("#cur-a")!;
-  const curB = container.querySelector<HTMLSelectElement>("#cur-b")!;
-  const swapBtn = container.querySelector<HTMLButtonElement>("#conv-swap")!;
-  const rateLine = container.querySelector<HTMLParagraphElement>("#conv-rate-line")!;
-
-  for (const code of ALL_CODES) {
-    const optA = document.createElement("option");
-    optA.value = code;
-    optA.textContent = `${code} — ${label(code)}`;
-    curA.appendChild(optA);
-
-    const optB = document.createElement("option");
-    optB.value = code;
-    optB.textContent = `${code} — ${label(code)}`;
-    curB.appendChild(optB);
-  }
-  curA.value = "USD";
-  curB.value = "TJS";
-
-  function recompute(from: "a" | "b") {
-    const a = curA.value as Code;
-    const b = curB.value as Code;
-    const rateA = tjsPerUnit(a, rates);
-    const rateB = tjsPerUnit(b, rates);
-
-    if (from === "a") {
-      const val = parseFloat(amtA.value);
-      amtB.value = Number.isFinite(val) ? toInputValue((val * rateA) / rateB) : "";
-    } else {
-      const val = parseFloat(amtB.value);
-      amtA.value = Number.isFinite(val) ? toInputValue((val * rateB) / rateA) : "";
-    }
-
-    rateLine.textContent = `1 ${a} = ${formatRate((rateA / rateB))} ${b}`;
+  function update() {
+    const value = parseAmount(amount.value);
+    error.hidden = value !== null || amount.value.trim() === "";
+    amount.setAttribute("aria-invalid", String(!error.hidden));
+    const converted = value === null ? null : convert(value, from.value, to.value, byCode);
+    result.textContent = converted === null ? "—" : formatMoney(converted, lang);
+    storage.set(STORAGE_KEY, `${from.value}:${to.value}`);
   }
 
-  amtA.addEventListener("input", () => recompute("a"));
-  amtB.addEventListener("input", () => recompute("b"));
-  curA.addEventListener("change", () => recompute("a"));
-  curB.addEventListener("change", () => recompute("a"));
-  swapBtn.addEventListener("click", () => {
-    const a = curA.value;
-    curA.value = curB.value;
-    curB.value = a;
-    recompute("a");
+  amount.addEventListener("input", update);
+  from.addEventListener("change", update);
+  to.addEventListener("change", update);
+  byId("swap").addEventListener("click", () => {
+    [from.value, to.value] = [to.value, from.value];
+    update();
   });
-
-  recompute("a");
+  update();
 }

@@ -121,7 +121,8 @@ export function parseBanks(html: string): { banks: BankRate[] } {
 
 /** The name inside quotes ("Алиф Бонк"), or the whole name when it has no legal-form prefix. */
 export function shortBankName(full: string): string {
-  return /["“«]([^"”»]+)["”»]/.exec(full)?.[1]?.trim() ?? full.trim();
+  const quoted = /["“«]([^"“”«»]+)["”»]?/.exec(full)?.[1]?.trim();
+  return quoted || full.trim();
 }
 
 /** NBT history exports are windows-1251; other documents are UTF-8. */

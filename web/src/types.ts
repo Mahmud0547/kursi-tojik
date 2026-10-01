@@ -1,72 +1,41 @@
-export type TrackedCurrency = "USD" | "EUR" | "RUB" | "CNY" | "KZT";
+/** Shapes of the Kursi Tojik API responses (see api/src/app.ts). */
 
-export const TRACKED_CURRENCIES: TrackedCurrency[] = ["USD", "EUR", "RUB", "CNY", "KZT"];
-
-export interface RatePoint {
-  date: string; // YYYY-MM-DD
+export interface LatestRate {
+  code: string;
+  name: string;
   nominal: number;
-  value: number; // TJS per `nominal` units of the currency
+  /** TJS per `nominal` units. */
+  value: number;
+  previousPerUnit: number | null;
 }
 
-export interface HistoryResponse {
-  currency: string;
-  from: string;
-  to: string;
-  count: number;
-  rates: RatePoint[];
+export interface Latest {
+  date: string;
+  previousDate: string | null;
+  rates: LatestRate[];
 }
 
-export interface BankRateEntry {
-  buy: number;
-  sell: number;
+export interface HistoryPoint {
+  date: string;
+  nominal: number;
+  value: number;
 }
 
-export interface Bank {
-  id: string;
+export interface BankRate {
   name: string;
+  bank: string;
+  cashBuy: number | null;
+  cashSell: number | null;
   updated: string;
-  verified: boolean;
-  rates: Partial<Record<"USD" | "EUR" | "RUB", BankRateEntry>>;
 }
 
-export interface BanksFile {
-  note: string;
-  banks: Bank[];
-}
-
-/** Один банк в ответе воркера GET /api/banks — все курсы для запрошенной валюты. */
-export interface BankApiEntry {
-  name: string;
-  interbank_buy: number;
-  interbank_sell: number;
-  cash_buy: number;
-  cash_sell: number;
-  noncash_buy: number;
-  noncash_sell: number;
-  card_buy: number;
-  card_sell: number;
-}
-
-export interface BanksApiResponse {
-  updated: string;
+export interface Banks {
   currency: string;
-  banks: BankApiEntry[];
+  updated: string | null;
+  banks: BankRate[];
 }
 
-export interface TransferTier {
-  upTo: number | null;
-  feePercent: number;
-  minFee: number;
-}
-
-export interface TransferSystem {
-  id: string;
-  name: string;
-  url: string;
-  tiers: TransferTier[];
-}
-
-export interface TransfersFile {
-  note: string;
-  systems: TransferSystem[];
+export interface Health {
+  bot: boolean;
+  botUsername: string | null;
 }
