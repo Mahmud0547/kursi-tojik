@@ -1,0 +1,28 @@
+{
+  "name": "kursi-tojik-api",
+  "private": true,
+  "version": "2.0.0",
+  "description": "API, data collector and Telegram bot for Kursi Tojik: official Tajik somoni exchange rates from the National Bank of Tajikistan.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "hono": "^4.13.12"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20261001.1",
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^17.13.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "~4.1.11",
+    "wrangler": "^4.145.0"
+  }
+}

@@ -1,0 +1,22 @@
+# Kursi Tojik API: read endpoints, scheduled NBT collection and the Telegram bot webhook.
+# The worker keeps its v1 name so the public URL stays the same.
+name = "kursi-tojik-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-08-20"
+
+[observability]
+enabled = true
+
+[triggers]
+# Every 3 hours: collect NBT rates and bank rates. 04:00 UTC = 09:00 in Dushanbe: daily digest to bot subscribers.
+crons = ["0 */3 * * *", "0 4 * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kursi-tojik"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[vars]
+ALLOWED_ORIGINS = "https://kursi-tojik.pages.dev,http://localhost:5173,http://localhost:4173"
+SITE_URL = "https://kursi-tojik.pages.dev"
