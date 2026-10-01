@@ -12,13 +12,20 @@ import type { Env } from "./env";
 /** Data older than this is reported as stale by /api/health. */
 const STALE_AFTER_DAYS = 4;
 
+/** Preview deployments of our own Pages project, e.g. https://v2.kursi-tojik.pages.dev. */
+const PREVIEW_ORIGIN = /^https:\/\/[a-z0-9-]+\.kursi-tojik\.pages\.dev$/;
+
+export function isAllowedOrigin(origin: string, allowList: string): boolean {
+  return allowList.split(",").map((o) => o.trim()).includes(origin) || PREVIEW_ORIGIN.test(origin);
+}
+
 export const app = new Hono<{ Bindings: Env }>();
 
 app.use("*", secureHeaders({ crossOriginResourcePolicy: "cross-origin" }));
 app.use(
   "/api/*",
   cors({
-    origin: (origin, c) => (c.env.ALLOWED_ORIGINS.split(",").map((o: string) => o.trim()).includes(origin) ? origin : null),
+    origin: (origin, c) => (isAllowedOrigin(origin, c.env.ALLOWED_ORIGINS) ? origin : null),
     allowMethods: ["GET"],
     maxAge: 86400,
   }),

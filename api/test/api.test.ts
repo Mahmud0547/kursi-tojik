@@ -1,6 +1,7 @@
 import { createExecutionContext, env, waitOnExecutionContext } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vitest";
 import { collect } from "../src/collect";
+import { isAllowedOrigin } from "../src/app";
 import worker from "../src/index";
 import { fakeNbt, NOW } from "./helpers";
 
@@ -67,6 +68,13 @@ describe("CORS and headers", () => {
   it("allows the site origin", async () => {
     const response = await call("/api/health", { headers: { Origin: "https://kursi-tojik.pages.dev" } });
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://kursi-tojik.pages.dev");
+  });
+
+  it("allows preview deployments of the same Pages project only", () => {
+    expect(isAllowedOrigin("https://v2.kursi-tojik.pages.dev", "")).toBe(true);
+    expect(isAllowedOrigin("https://evil.pages.dev", "")).toBe(false);
+    expect(isAllowedOrigin("https://x.kursi-tojik.pages.dev.evil.com", "")).toBe(false);
+    expect(isAllowedOrigin("http://v2.kursi-tojik.pages.dev", "")).toBe(false);
   });
 
   it("does not allow other origins", async () => {
