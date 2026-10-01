@@ -3,5 +3,14 @@ dist/
 .wrangler/
 .env
 .env.local
+.dev.vars
 *.log
 .DS_Store
+*.tsbuildinfo
+test-results/
+playwright-report/
+.lighthouseci/
+
+# Local tooling notes
+CLAUDE.md
+AGENTS.md

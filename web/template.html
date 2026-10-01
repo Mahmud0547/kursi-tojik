@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="{{htmlLang}}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{meta.title}}</title>
+    <meta name="description" content="{{meta.description}}" />
+    <link rel="canonical" href="{{siteUrl}}{{path}}" />
+    <link rel="alternate" hreflang="tg" href="{{siteUrl}}/" />
+    <link rel="alternate" hreflang="ru" href="{{siteUrl}}/ru/" />
+    <link rel="alternate" hreflang="en" href="{{siteUrl}}/en/" />
+    <link rel="alternate" hreflang="x-default" href="{{siteUrl}}/" />
+    <meta name="theme-color" content="#0b3d2e" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kursi Tojik" />
+    <meta property="og:title" content="{{meta.title}}" />
+    <meta property="og:description" content="{{meta.description}}" />
+    <meta property="og:url" content="{{siteUrl}}{{path}}" />
+    <meta property="og:image" content="{{siteUrl}}/og.png" />
+    <meta property="og:locale" content="{{ogLocale}}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="api-url" content="{{apiUrl}}" />
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">{{nav.skip}}</a>
+    <header class="top">
+      <div class="wrap top__row">
+        <a class="logo" href="{{path}}">
+          <img src="/favicon.svg" alt="" width="28" height="28" />
+          <span>{{brand}}</span>
+        </a>
+        <nav class="langs" aria-label="{{nav.language}}">
+          <a href="/" hreflang="tg" lang="tg" {{current.tj}}>TJ</a>
+          <a href="/ru/" hreflang="ru" lang="ru" {{current.ru}}>RU</a>
+          <a href="/en/" hreflang="en" lang="en" {{current.en}}>EN</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="hero">
+        <div class="wrap hero__grid">
+          <section class="hero__text" aria-labelledby="hero-title">
+            <p class="badge"><span class="badge__dot" aria-hidden="true"></span><span id="hero-badge">{{hero.loading}}</span></p>
+            <h1 id="hero-title">{{hero.title}}</h1>
+            <p class="hero__rate"><span id="hero-value" class="num">—</span> <span class="hero__unit">TJS</span></p>
+            <p class="hero__change"><span id="hero-change" class="change" hidden></span> <span id="hero-change-text">{{hero.unit}}</span></p>
+            <p id="hero-error" class="error" role="alert" hidden>{{hero.error}}</p>
+          </section>
+
+          <section class="card converter" aria-labelledby="converter-title">
+            <h2 id="converter-title">{{converter.title}}</h2>
+            <div class="field">
+              <label for="amount">{{converter.amount}}</label>
+              <div class="field__row">
+                <input id="amount" class="num" type="text" inputmode="decimal" autocomplete="off" value="100" aria-describedby="amount-error" />
+                <select id="from" aria-label="{{converter.from}}"></select>
+              </div>
+              <p id="amount-error" class="error" hidden>{{converter.invalid}}</p>
+            </div>
+            <div class="swap">
+              <button id="swap" type="button" aria-label="{{converter.swap}}">⇅</button>
+            </div>
+            <div class="field">
+              <label for="result">{{converter.result}}</label>
+              <div class="field__row">
+                <output id="result" class="num" for="amount from to" aria-live="polite">—</output>
+                <select id="to" aria-label="{{converter.to}}"></select>
+              </div>
+            </div>
+            <p class="note">{{converter.note}}</p>
+          </section>
+        </div>
+      </div>
+
+      <section class="wrap section" aria-labelledby="board-title">
+        <div class="section__head">
+          <h2 id="board-title">{{board.title}}</h2>
+          <p id="board-source" class="muted"></p>
+        </div>
+        <ul id="board" class="board"></ul>
+      </section>
+
+      <div class="wrap duo">
+        <section class="card chart" aria-labelledby="chart-title">
+          <div class="card__head">
+            <h2 id="chart-title">{{chart.title}}</h2>
+            <div id="chart-currency" class="segmented" role="group" aria-label="{{chart.currency}}"></div>
+          </div>
+          <figure class="chart__figure">
+            <div id="chart" class="chart__plot"></div>
+            <figcaption id="chart-summary" class="muted"></figcaption>
+          </figure>
+          <div id="chart-range" class="segmented" role="group" aria-label="{{chart.range}}">
+            <button type="button" data-days="7">{{chart.days7}}</button>
+            <button type="button" data-days="30" aria-pressed="true">{{chart.days30}}</button>
+            <button type="button" data-days="90">{{chart.days90}}</button>
+            <button type="button" data-days="365">{{chart.days365}}</button>
+          </div>
+        </section>
+
+        <section class="card banks" aria-labelledby="banks-title">
+          <div class="card__head">
+            <h2 id="banks-title">{{banks.title}}</h2>
+            <div id="banks-currency" class="segmented" role="group" aria-label="{{banks.currency}}">
+              <button type="button" data-code="USD" aria-pressed="true">USD</button>
+              <button type="button" data-code="EUR">EUR</button>
+              <button type="button" data-code="RUB">RUB</button>
+            </div>
+          </div>
+          <p id="banks-updated" class="muted"></p>
+          <div class="table-scroll">
+            <table class="banks__table">
+              <thead>
+                <tr>
+                  <th scope="col">{{banks.bank}}</th>
+                  <th scope="col" class="num-col">{{banks.buy}}<span class="th-hint">{{banks.buyHint}}</span></th>
+                  <th scope="col" class="num-col">{{banks.sell}}<span class="th-hint">{{banks.sellHint}}</span></th>
+                </tr>
+              </thead>
+              <tbody id="banks-body"></tbody>
+            </table>
+          </div>
+          <button id="banks-toggle" class="link-button" type="button" aria-controls="banks-body" aria-expanded="false" hidden></button>
+        </section>
+      </div>
+
+      <section id="bot" class="bot" aria-labelledby="bot-title" hidden>
+        <div class="wrap bot__grid">
+          <div>
+            <h2 id="bot-title">{{bot.title}}</h2>
+            <p class="bot__text">{{bot.text}}</p>
+            <a id="bot-link" class="button" href="https://t.me/" target="_blank" rel="noopener noreferrer">{{bot.open}}</a>
+          </div>
+          <div class="chat" aria-hidden="true">
+            <p class="chat__me">100 usd</p>
+            <p class="chat__bot" id="bot-example">100 USD = … TJS</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap foot__inner">
+        <p>{{footer.source}}</p>
+        <p>{{footer.independent}}</p>
+        <p><a href="https://github.com/Mahmud0547/kursi-tojik" target="_blank" rel="noopener noreferrer">{{footer.code}}</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

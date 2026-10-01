@@ -1,28 +1,25 @@
-// Простой service worker: cache-first для статики, network-first для /api/*.
+// Offline support: pages and assets are cached as they are used; API answers are network-first,
+// so a phone without a connection still shows the last rates it saw (with their date).
+const CACHE = "kursi-tojik-v2";
 
-const CACHE_NAME = "kursi-tojik-v1";
-
-self.addEventListener("install", (event) => {
-  self.skipWaiting();
-});
+self.addEventListener("install", () => self.skipWaiting());
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))),
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()),
   );
-  self.clients.claim();
 });
 
 async function networkFirst(request) {
+  const cache = await caches.open(CACHE);
   try {
     const response = await fetch(request);
-    const cache = await caches.open(CACHE_NAME);
-    cache.put(request, response.clone());
+    if (response.ok) cache.put(request, response.clone());
     return response;
-  } catch (err) {
-    const cached = await caches.match(request);
+  } catch (error) {
+    const cached = await cache.match(request);
     if (cached) return cached;
-    throw err;
+    throw error;
   }
 }
 
@@ -30,23 +27,17 @@ async function cacheFirst(request) {
   const cached = await caches.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response.ok) {
-    const cache = await caches.open(CACHE_NAME);
-    cache.put(request, response.clone());
-  }
+  if (response.ok) (await caches.open(CACHE)).put(request, response.clone());
   return response;
 }
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
-  const url = new URL(event.request.url);
-
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(networkFirst(event.request));
-    return;
-  }
-
-  if (url.origin === self.location.origin) {
-    event.respondWith(cacheFirst(event.request));
+  const { request } = event;
+  if (request.method !== "GET") return;
+  const url = new URL(request.url);
+  if (url.pathname.startsWith("/api/") || request.mode === "navigate") {
+    event.respondWith(networkFirst(request));
+  } else if (url.origin === self.location.origin) {
+    event.respondWith(cacheFirst(request));
   }
 });

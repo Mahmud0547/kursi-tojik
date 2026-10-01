@@ -1,254 +1,130 @@
+import "@fontsource-variable/inter/wght.css";
 import "./style.css";
-import autoAnimate from "@formkit/auto-animate";
-import { animate } from "motion";
-import { fetchHistory } from "./api";
+import { getBanks, getHealth, getHistory, getLatest } from "./api";
+import { renderBanks } from "./banks";
+import { changeView, renderBoard, TRACKED } from "./board";
 import { RateChart } from "./chart";
-import { createConverter, type RateMap } from "./converter";
-import { renderBanksTable, createBankComparator, loadBanksData } from "./banks";
-import { createTransferCalculator } from "./transfers";
-import { TRACKED_CURRENCIES, type HistoryResponse, type TrackedCurrency } from "./types";
-import { formatFullDate, formatPercent, formatRate } from "./format";
-import { getLang, setLang, t, currencyLabel, type Lang } from "./i18n";
-import { getTheme, toggleTheme } from "./theme";
-import transfersDataRaw from "./data/transfers.json";
-import type { TransfersFile } from "./types";
+import { setupConverter } from "./converter";
+import { byId, h, segmented } from "./dom";
+import { formatDate, formatMoney, formatRate } from "./format";
+import { pageLang, translate } from "./i18n";
+import { convert } from "./money";
+import type { Banks, Latest } from "./types";
 
-const transfersData = transfersDataRaw as TransfersFile;
+const lang = pageLang();
+const t = (key: string, vars?: Record<string, string>) => translate(lang, key, vars);
 
-const todayEl = document.getElementById("today-date")!;
-const statusEl = document.getElementById("update-status")!;
-
-const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-/** Плавное появление элемента снизу вверх (пропускается при prefers-reduced-motion). */
-function fadeInUp(el: HTMLElement, delay = 0) {
-  if (prefersReducedMotion) return;
-  animate(el, { opacity: [0, 1], y: [20, 0] }, { duration: 0.6, delay, ease: "easeOut" });
-}
-
-/** Проставляет переведённые тексты на статичные элементы разметки. */
-function applyStaticTexts() {
-  todayEl.textContent = formatFullDate(new Date().toISOString().slice(0, 10));
-  document.getElementById("hero-heading")!.textContent = t("hero.title");
-  document.getElementById("hero-unit")!.textContent = t("hero.unit");
-  document.getElementById("converter-heading")!.textContent = t("converter.title");
-  document.getElementById("chart-heading")!.textContent = t("chart.title");
-  document.getElementById("chart-currency-tabs")!.setAttribute("aria-label", t("chart.currencyTabs"));
-  document.getElementById("chart-range-tabs")!.setAttribute("aria-label", t("chart.rangeTabs"));
-  document.getElementById("banks-heading")!.textContent = t("banks.title");
-  document.getElementById("transfers-heading")!.textContent = t("transfers.title");
-  document.getElementById("chart-status")!.textContent = t("chart.loading");
-
-  const rangeLabels: Record<string, string> = { "7": t("chart.range.7"), "30": t("chart.range.30"), "90": t("chart.range.90") };
-  document.querySelectorAll<HTMLButtonElement>("#chart-range-tabs button[data-range]").forEach((btn) => {
-    btn.textContent = rangeLabels[btn.dataset.range!];
-  });
-
-  document.getElementById("footer-official")!.innerHTML =
-    `${t("footer.official")} (<a href="https://www.nbt.tj" target="_blank" rel="noopener noreferrer">nbt.tj</a>). ${t("footer.disclaimer")}`;
-  document.getElementById("footer-about")!.textContent = t("footer.about");
-
-  const langBtn = document.getElementById("lang-toggle")!;
-  langBtn.textContent = t("lang.toggle");
-  const themeBtn = document.getElementById("theme-toggle")!;
-  themeBtn.setAttribute("aria-label", t("theme.toggle"));
-  themeBtn.textContent = getTheme() === "dark" ? "☀" : "☾";
-}
-
-function setupHeaderControls() {
-  document.getElementById("lang-toggle")!.addEventListener("click", () => {
-    const next: Lang = getLang() === "tj" ? "ru" : "tj";
-    setLang(next);
-    location.reload();
-  });
-  document.getElementById("theme-toggle")!.addEventListener("click", () => {
-    toggleTheme();
-    document.getElementById("theme-toggle")!.textContent = getTheme() === "dark" ? "☀" : "☾";
-  });
-}
-
-function dayChange(history: HistoryResponse): { latest: number; prevPct: number; dir: "up" | "down" | "flat" } {
-  const rates = history.rates;
-  const latestPoint = rates[rates.length - 1];
-  const latest = latestPoint.value / latestPoint.nominal;
-  const prevPoint = rates.length > 1 ? rates[rates.length - 2] : latestPoint;
-  const prev = prevPoint.value / prevPoint.nominal;
-  const pct = prev === 0 ? 0 : ((latest - prev) / prev) * 100;
-  const dir = pct > 0.0005 ? "up" : pct < -0.0005 ? "down" : "flat";
-  return { latest, prevPct: pct, dir };
-}
-
-/** Загружает курсы банков через воркер и рендерит таблицу либо заглушку об ошибке. */
-async function loadBanks() {
-  const noteEl = document.getElementById("banks-note")!;
-  const tableEl = document.getElementById("banks-table") as HTMLTableElement;
-  const comparatorEl = document.getElementById("bank-comparator")!;
-
-  noteEl.textContent = t("banks.loading");
-
-  try {
-    const banksData = await loadBanksData();
-    renderBanksTable(tableEl, noteEl, banksData);
-    createBankComparator(comparatorEl, banksData);
-    const tbody = tableEl.querySelector("tbody");
-    if (tbody) autoAnimate(tbody);
-  } catch (err) {
-    console.error(err);
-    noteEl.textContent = t("banks.error");
-    tableEl.innerHTML = "";
-    comparatorEl.innerHTML = "";
+function renderHero(latest: Latest): void {
+  const usd = latest.rates.find((r) => r.code === "USD");
+  byId("hero-badge").textContent = t("hero.badge", { date: formatDate(latest.date, lang) });
+  if (!usd) return;
+  byId("hero-value").textContent = formatRate(usd.value / usd.nominal, lang);
+  const change = changeView(usd, lang);
+  const pill = byId("hero-change");
+  if (change && latest.previousDate) {
+    pill.textContent = change.text;
+    pill.className = `change change--${change.dir}`;
+    pill.hidden = false;
+    byId("hero-change-text").textContent = `${t("hero.change", { date: formatDate(latest.previousDate, lang) })} · ${t("hero.unit")}`;
   }
 }
 
-async function main() {
-  applyStaticTexts();
-  setupHeaderControls();
-
-  const heroValueEl = document.getElementById("hero-value")!;
-  const heroChangeEl = document.getElementById("hero-change")!;
-  const boardEl = document.getElementById("board-row")!;
-  const chartStatusEl = document.getElementById("chart-status")!;
-  const chartContainer = document.getElementById("chart-container")!;
-  const currencyTabsEl = document.getElementById("chart-currency-tabs")!;
-  const rangeTabsEl = document.getElementById("chart-range-tabs")!;
-  const converterEl = document.getElementById("converter")!;
-
-  statusEl.textContent = t("header.status.loading");
-  loadBanks();
-
-  const settled = await Promise.allSettled(
-    TRACKED_CURRENCIES.map((c) => fetchHistory(c, 95).then((h) => [c, h] as const)),
+function setupChart(latest: Latest): void {
+  const chart = new RateChart(byId("chart"), lang);
+  const summary = byId("chart-summary");
+  const currencyGroup = byId("chart-currency");
+  const available = TRACKED.filter((code) => latest.rates.some((r) => r.code === code)).slice(0, 4);
+  currencyGroup.replaceChildren(
+    ...available.map((code, i) => h("button", { text: code, attrs: { type: "button", "data-code": code, "aria-pressed": String(i === 0) } })),
   );
+  let code: string = available[0] ?? "USD";
+  let days = 30;
+  let request = 0;
 
-  const histories = new Map<TrackedCurrency, HistoryResponse>();
-  for (const r of settled) {
-    if (r.status === "fulfilled") histories.set(r.value[0], r.value[1]);
+  async function load() {
+    const id = ++request;
+    try {
+      const points = await getHistory(code, days);
+      if (id !== request) return; // a newer selection is already loading
+      chart.setData(points);
+      const values = points.map((p) => p.value / p.nominal);
+      summary.textContent = points.length
+        ? t("chart.summary", {
+            code,
+            from: formatRate(Math.min(...values), lang),
+            to: formatRate(Math.max(...values), lang),
+            start: formatDate(points[0]!.date, lang),
+            end: formatDate(points[points.length - 1]!.date, lang),
+          })
+        : "";
+    } catch {
+      if (id === request) summary.textContent = t("chart.error");
+    }
   }
+  segmented(currencyGroup, (button) => {
+    code = button.dataset.code ?? code;
+    void load();
+  });
+  segmented(byId("chart-range"), (button) => {
+    days = Number(button.dataset.days) || 30;
+    void load();
+  });
+  void load();
+}
 
-  if (histories.size === 0) {
-    statusEl.textContent = t("header.status.offline");
-    heroValueEl.textContent = t("hero.noData");
-    chartStatusEl.textContent = t("chart.error");
-    createTransferCalculator(
-      document.getElementById("transfer-calc")!,
-      document.getElementById("transfers-note")!,
-      transfersData,
-      { USD: 0, RUB: 0 },
-    );
+function setupBanks(): void {
+  let request = 0;
+  let current: Banks | null = null;
+  let expanded = false;
+  async function load(currency: string) {
+    const id = ++request;
+    try {
+      const data = await getBanks(currency);
+      if (id !== request) return;
+      current = data;
+      renderBanks(data, lang, expanded);
+    } catch {
+      if (id === request) byId("banks-updated").textContent = t("banks.error");
+    }
+  }
+  byId("banks-toggle").addEventListener("click", () => {
+    expanded = !expanded;
+    if (current) renderBanks(current, lang, expanded);
+  });
+  segmented(byId("banks-currency"), (button) => void load(button.dataset.code ?? "USD"));
+  void load("USD");
+}
+
+async function setupBot(latest: Latest): Promise<void> {
+  const health = await getHealth().catch(() => null);
+  if (!health?.bot || !health.botUsername) return;
+  byId<HTMLAnchorElement>("bot-link").href = `https://t.me/${encodeURIComponent(health.botUsername)}`;
+  const rates = Object.fromEntries(latest.rates.map((r) => [r.code, r]));
+  const tjs = convert(100, "USD", "TJS", rates);
+  if (tjs !== null) byId("bot-example").textContent = `100 USD = ${formatMoney(tjs, lang)} TJS`;
+  byId("bot").hidden = false;
+}
+
+async function main(): Promise<void> {
+  setupBanks();
+  let latest: Latest;
+  try {
+    latest = await getLatest();
+  } catch {
+    byId("hero-error").hidden = false;
+    byId("hero-badge").textContent = "—";
     return;
   }
-
-  statusEl.textContent = t("header.status.updated", {
-    date: formatFullDate([...histories.values()][0].rates.slice(-1)[0].date),
-  });
-
-  // --- hero (USD) ---
-  const usdHistory = histories.get("USD");
-  if (usdHistory) {
-    const { latest, prevPct, dir } = dayChange(usdHistory);
-    heroValueEl.textContent = formatRate(latest);
-    heroChangeEl.textContent = formatPercent(prevPct);
-    heroChangeEl.dataset.dir = dir;
-    fadeInUp(heroValueEl);
-  }
-
-  // --- exchange board row ---
-  boardEl.innerHTML = "";
-  const latestRates: Partial<RateMap> = {};
-  for (const [index, code] of TRACKED_CURRENCIES.entries()) {
-    const history = histories.get(code);
-    const cell = document.createElement("div");
-    cell.className = "board-cell";
-    cell.setAttribute("role", "listitem");
-
-    if (!history) {
-      cell.innerHTML = `<span class="board-cell__code">${code}</span><span class="board-cell__value">—</span>`;
-      boardEl.appendChild(cell);
-      fadeInUp(cell, index * 0.06);
-      continue;
-    }
-
-    const last = history.rates[history.rates.length - 1];
-    latestRates[code] = { value: last.value, nominal: last.nominal };
-    const { latest, prevPct, dir } = dayChange(history);
-    const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "•";
-
-    cell.innerHTML = `
-      <span class="board-cell__code" title="${currencyLabel(code)}">${code}</span>
-      <span class="board-cell__value mono">${formatRate(latest)}</span>
-      <span class="board-cell__change mono" data-dir="${dir}">${arrow} ${formatPercent(prevPct)}</span>
-    `;
-    boardEl.appendChild(cell);
-    fadeInUp(cell, index * 0.06);
-  }
-
-  // --- converter ---
-  if (Object.keys(latestRates).length === TRACKED_CURRENCIES.length) {
-    createConverter(converterEl, latestRates as RateMap);
-  } else {
-    converterEl.innerHTML = `<p class="panel-note">${t("converter.unavailable")}</p>`;
-  }
-
-  // --- chart ---
-  let activeCurrency: TrackedCurrency = histories.has("USD") ? "USD" : ([...histories.keys()][0] as TrackedCurrency);
-  let activeRange = 30;
-  let chart: RateChart | null = null;
-
-  currencyTabsEl.innerHTML = "";
-  for (const code of TRACKED_CURRENCIES) {
-    if (!histories.has(code)) continue;
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.textContent = code;
-    btn.setAttribute("role", "tab");
-    btn.setAttribute("aria-selected", String(code === activeCurrency));
-    btn.addEventListener("click", () => {
-      activeCurrency = code;
-      currencyTabsEl.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", "false"));
-      btn.setAttribute("aria-selected", "true");
-      drawChart();
-    });
-    currencyTabsEl.appendChild(btn);
-  }
-
-  rangeTabsEl.querySelectorAll<HTMLButtonElement>("button[data-range]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      activeRange = parseInt(btn.dataset.range!, 10);
-      rangeTabsEl.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", "false"));
-      btn.setAttribute("aria-selected", "true");
-      drawChart();
-    });
-  });
-
-  function drawChart() {
-    const history = histories.get(activeCurrency);
-    if (!history) return;
-    chartStatusEl.remove();
-    if (!chart) chart = new RateChart(chartContainer);
-    const slice = history.rates.slice(-activeRange).map((r) => ({ ...r, value: r.value / r.nominal }));
-    chart.setData(slice);
-  }
-
-  if (histories.size > 0) drawChart();
-
-  // --- transfer calculator ---
-  const usdRate = latestRates.USD ? latestRates.USD.value / latestRates.USD.nominal : 0;
-  const rubRate = latestRates.RUB ? latestRates.RUB.value / latestRates.RUB.nominal : 0;
-  createTransferCalculator(
-    document.getElementById("transfer-calc")!,
-    document.getElementById("transfers-note")!,
-    transfersData,
-    { USD: usdRate, RUB: rubRate },
-  );
+  renderHero(latest);
+  byId("board-source").textContent = t("board.source", { date: formatDate(latest.date, lang) });
+  renderBoard(byId("board"), latest.rates, lang);
+  setupConverter(latest.rates, lang);
+  setupChart(latest);
+  void setupBot(latest);
 }
 
-main().catch((err) => {
-  console.error(err);
-  statusEl.textContent = t("header.status.offline");
-});
+void main();
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch((err) => console.error("SW registration failed", err));
-  });
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => void navigator.serviceWorker.register("/sw.js"));
 }
