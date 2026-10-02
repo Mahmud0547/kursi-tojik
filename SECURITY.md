@@ -1,6 +1,6 @@
 # Security
 
-Report a vulnerability privately on Telegram: https://t.me/Simorgh_Dev. Please do not open a public issue.
+Report a vulnerability privately on Telegram: https://t.me/SimorghDev. Please do not open a public issue.
 
 ## Measures
 
