@@ -21,6 +21,7 @@ export function translate(lang: Lang, key: string, vars: Record<string, string> 
   return text.replace(/\{(\w+)\}/g, (match, name: string) => vars[name] ?? match);
 }
 
+/** Our own translation for every currency the National Bank publishes; a new one falls back to the bank's English name. */
 export function currencyName(lang: Lang, code: string, fallback: string): string {
   return (dictionaries[lang].currency as Record<string, string>)[code] ?? fallback;
 }

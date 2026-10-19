@@ -85,3 +85,12 @@ export class RateChart {
     });
   }
 }
+
+/** Lowest and highest rate in the period and the change from the first day to the last, in percent. */
+export function periodStats(history: HistoryPoint[]): { low: number; high: number; change: number } | null {
+  if (history.length < 2) return null;
+  const values = history.map((p) => p.value / p.nominal);
+  const first = values[0]!;
+  const last = values[values.length - 1]!;
+  return { low: Math.min(...values), high: Math.max(...values), change: ((last - first) / first) * 100 };
+}
