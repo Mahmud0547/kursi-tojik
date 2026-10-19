@@ -41,7 +41,16 @@ export const storage = {
     try {
       localStorage.setItem(key, value);
     } catch {
-      // private mode or blocked storage: the converter simply does not remember the choice
+      // private mode or blocked storage: the site simply does not remember the choice
+    }
+  },
+  remove(key: string): void {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // nothing to forget
     }
   },
 };
+
+export const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;

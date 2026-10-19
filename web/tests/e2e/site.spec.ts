@@ -37,7 +37,7 @@ test("board shows nominals as published", async ({ page }) => {
 
 test("converter converts, swaps and rejects bad input", async ({ page }) => {
   await fakeApi(page);
-  await page.goto("/en/");
+  await page.goto("/en/#convert");
   const result = page.locator("#result");
   await expect(result).toHaveText("922.01");
   await page.fill("#amount", "1 000,5");
@@ -54,7 +54,7 @@ test("converter converts, swaps and rejects bad input", async ({ page }) => {
 
 test("converter remembers the chosen currencies", async ({ page }) => {
   await fakeApi(page);
-  await page.goto("/en/");
+  await page.goto("/en/#convert");
   await page.selectOption("#from", "EUR");
   await page.reload();
   await expect(page.locator("#from")).toHaveValue("EUR");
@@ -63,7 +63,7 @@ test("converter remembers the chosen currencies", async ({ page }) => {
 test("chart loads the chosen currency and period", async ({ page }) => {
   const calls: string[] = [];
   await fakeApi(page, { calls });
-  await page.goto("/en/");
+  await page.goto("/en/#history");
   await expect(page.locator("#chart path.chart__line")).toHaveCount(1);
   await page.click('#chart-currency button[data-code="EUR"]');
   await page.click('#chart-range button[data-days="90"]');
@@ -74,7 +74,7 @@ test("chart loads the chosen currency and period", async ({ page }) => {
 
 test("bank table marks the best rates in words and can show all banks", async ({ page }) => {
   await fakeApi(page);
-  await page.goto("/en/");
+  await page.goto("/en/#exchange");
   const rows = page.locator("#banks-body tr");
   await expect(rows).toHaveCount(8);
   await expect(rows.first()).toContainText("Спитамен Бонк"); // best buy (9.21) comes first
@@ -115,4 +115,95 @@ test("bot section links to the bot when it is configured", async ({ page }) => {
   await expect(page.locator("#bot")).toBeVisible();
   await expect(page.locator("#bot-link")).toHaveAttribute("href", "https://t.me/kursi_tojik_bot");
   await expect(page.locator("#bot-example")).toHaveText("100 USD = 922,01 TJS");
+});
+
+test("converter: quick amounts and the same sum in other currencies", async ({ page }) => {
+  await fakeApi(page);
+  await page.goto("/en/#convert");
+  await page.click('#chips button[data-amount="1000"]');
+  await expect(page.locator("#amount")).toHaveValue("1000");
+  await expect(page.locator("#result")).toHaveText("9,220.10");
+  await expect(page.locator("#multi li")).toHaveCount(7); // 8 main currencies + TJS, minus USD and TJS
+  await page.click('#multi button:has-text("EUR")');
+  await expect(page.locator("#to")).toHaveValue("EUR");
+});
+
+test("where to exchange: best and worst bank for the amount, and the difference", async ({ page }) => {
+  await fakeApi(page);
+  await page.goto("/en/#exchange");
+  const result = page.locator("#planner-result");
+  await expect(result.locator(".offer--best")).toContainText("Спитамен Бонк");
+  await expect(result.locator(".offer--best")).toContainText("921.00 TJS");
+  await expect(result).toContainText("4.00 TJS more");
+  await expect(result).toContainText("At the official rate: 922.01 TJS");
+  await page.click('#planner-direction button[data-direction="buy"]');
+  await expect(result.locator(".offer--best")).toContainText("Арванд");
+  await page.fill("#planner-amount", "x");
+  await expect(result).toContainText("Enter the amount in digits");
+});
+
+test("pressing a board card shows that currency at the top and remembers it", async ({ page }) => {
+  await fakeApi(page);
+  await page.goto("/en/");
+  await page.locator("#board button", { hasText: "EUR" }).click();
+  await expect(page.locator("#hero-value")).toHaveText("10.4731");
+  await expect(page.locator("#hero-change-text")).toContainText("TJS per 1 EUR");
+  await page.reload();
+  await expect(page.locator("#hero-value")).toHaveText("10.4731");
+  await expect(page.locator("#board button", { hasText: "EUR" })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("all currencies: search and pin a currency to the board", async ({ page }) => {
+  await fakeApi(page);
+  await page.goto("/en/");
+  await page.fill("#search", "lira");
+  await expect(page.locator("#all-rates li")).toHaveCount(1);
+  await page.click("#all-rates .star");
+  await expect(page.locator("#board li")).toHaveCount(9);
+  await page.fill("#search", "zzz");
+  await expect(page.locator("#all-empty")).toBeVisible();
+  await page.reload();
+  await expect(page.locator("#board li")).toHaveCount(9);
+});
+
+test("settings: dark theme and large text are applied and remembered", async ({ page }) => {
+  await fakeApi(page);
+  await page.goto("/ru/");
+  await page.click("#settings-open");
+  await expect(page.locator("#settings")).toBeVisible();
+  await page.locator('#settings label:has(input[value="dark"])').click();
+  await page.locator('#settings label:has(input[value="large"])').click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("html")).toHaveAttribute("data-size", "large");
+  await page.keyboard.press("Escape");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.click("#settings-open");
+  await page.click("#settings-reset");
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme", /./);
+  await expect(page.locator("#toast")).toHaveText("Настройки сброшены");
+});
+
+test("refresh button loads the rates again and says so", async ({ page }) => {
+  const calls: string[] = [];
+  await fakeApi(page, { calls });
+  await page.goto("/en/");
+  await expect(page.locator("#status")).toContainText("Updated at");
+  await page.click("#refresh");
+  await expect(page.locator("#toast")).toHaveText("Rates updated");
+  expect(calls.filter((c) => c === "/api/rates/latest").length).toBe(2);
+});
+
+test("phones: the bottom tabs show one section at a time", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "wide screens show every section at once");
+  await fakeApi(page);
+  await page.goto("/en/");
+  await expect(page.locator("#rates")).toBeVisible();
+  await expect(page.locator("#convert")).toBeHidden();
+  await page.click('.tabs a[data-view="convert"]');
+  await expect(page.locator("#convert")).toBeVisible();
+  await expect(page.locator("#rates")).toBeHidden();
+  await expect(page.locator('.tabs a[data-view="convert"]')).toHaveAttribute("aria-current", "page");
+  await page.goBack();
+  await expect(page.locator("#rates")).toBeVisible();
 });

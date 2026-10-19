@@ -2,7 +2,7 @@
 <html lang="{{htmlLang}}">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{{meta.title}}</title>
     <meta name="description" content="{{meta.description}}" />
     <link rel="canonical" href="{{siteUrl}}{{path}}" />
@@ -11,6 +11,9 @@
     <link rel="alternate" hreflang="en" href="{{siteUrl}}/en/" />
     <link rel="alternate" hreflang="x-default" href="{{siteUrl}}/" />
     <meta name="theme-color" content="#0b3d2e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Kursi Tojik" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
@@ -28,110 +31,90 @@
   </head>
   <body>
     <a class="skip" href="#main">{{nav.skip}}</a>
+
     <header class="top">
       <div class="wrap top__row">
         <a class="logo" href="{{path}}">
-          <img src="/favicon.svg" alt="" width="28" height="28" />
+          <img src="/favicon.svg" alt="" width="30" height="30" />
           <span>{{brand}}</span>
         </a>
-        <nav class="langs" aria-label="{{nav.language}}">
-          <a href="/" hreflang="tg" lang="tg" {{current.tj}}>TJ</a>
-          <a href="/ru/" hreflang="ru" lang="ru" {{current.ru}}>RU</a>
-          <a href="/en/" hreflang="en" lang="en" {{current.en}}>EN</a>
-        </nav>
+        <p id="status" class="status" role="status" hidden></p>
+        <div class="top__actions">
+          <nav class="langs" aria-label="{{nav.language}}">
+            <a href="/" hreflang="tg" lang="tg" {{current.tj}}>TJ</a>
+            <a href="/ru/" hreflang="ru" lang="ru" {{current.ru}}>RU</a>
+            <a href="/en/" hreflang="en" lang="en" {{current.en}}>EN</a>
+          </nav>
+          <button id="refresh" class="icon-button" type="button" aria-label="{{nav.refresh}}" title="{{nav.refresh}}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" /></svg>
+          </button>
+          <button id="settings-open" class="icon-button" type="button" aria-label="{{nav.settings}}" title="{{nav.settings}}" aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></svg>
+          </button>
+        </div>
       </div>
     </header>
 
-    <main id="main">
-      <div class="hero">
-        <div class="wrap hero__grid">
-          <section class="hero__text" aria-labelledby="hero-title">
-            <p class="badge"><span class="badge__dot" aria-hidden="true"></span><span id="hero-badge">{{hero.loading}}</span></p>
-            <h1 id="hero-title">{{hero.title}}</h1>
-            <p class="hero__rate"><span id="hero-value" class="num">—</span> <span class="hero__unit">TJS</span></p>
-            <p class="hero__change"><span id="hero-change" class="change" hidden></span> <span id="hero-change-text">{{hero.unit}}</span></p>
-            <p id="hero-error" class="error" role="alert" hidden>{{hero.error}}</p>
-          </section>
+    <nav class="tabs" aria-label="{{nav.sections}}">
+      <a href="#rates" data-view="rates">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2" /></svg>
+        <span>{{nav.rates}}</span>
+      </a>
+      <a href="#convert" data-view="convert">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" /></svg>
+        <span>{{nav.convert}}</span>
+      </a>
+      <a href="#exchange" data-view="exchange">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18M5 10v8M10 10v8M14 10v8M19 10v8M2 21h20M12 3l9 5H3z" /></svg>
+        <span>{{nav.exchange}}</span>
+      </a>
+      <a href="#history" data-view="history">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 6-6 4 4 8-8M15 7h6v6" /></svg>
+        <span>{{nav.history}}</span>
+      </a>
+    </nav>
 
-          <section class="card converter" aria-labelledby="converter-title">
-            <h2 id="converter-title">{{converter.title}}</h2>
-            <div class="field">
-              <label for="amount">{{converter.amount}}</label>
-              <div class="field__row">
-                <input id="amount" class="num" type="text" inputmode="decimal" autocomplete="off" value="100" aria-describedby="amount-error" />
-                <select id="from" aria-label="{{converter.from}}"></select>
-              </div>
-              <p id="amount-error" class="error" hidden>{{converter.invalid}}</p>
-            </div>
-            <div class="swap">
-              <button id="swap" type="button" aria-label="{{converter.swap}}">⇅</button>
-            </div>
-            <div class="field">
-              <label for="result">{{converter.result}}</label>
-              <div class="field__row">
-                <output id="result" class="num" for="amount from to" aria-live="polite">—</output>
-                <select id="to" aria-label="{{converter.to}}"></select>
-              </div>
-            </div>
-            <p class="note">{{converter.note}}</p>
-          </section>
+    <main id="main" class="wrap views">
+      <section id="rates" class="view view--rates is-active" aria-labelledby="hero-title">
+        <div class="hero">
+          <p class="badge"><span class="badge__dot" aria-hidden="true"></span><span id="hero-badge">{{hero.loading}}</span></p>
+          <h1 id="hero-title">{{hero.title}}</h1>
+          <p class="hero__rate"><span id="hero-value" class="num">—</span> <span class="hero__unit">TJS</span></p>
+          <p class="hero__change"><span id="hero-change" class="change" hidden></span> <span id="hero-change-text">{{hero.unit}}</span></p>
+          <p id="hero-error" class="error" role="alert" hidden>{{hero.error}}</p>
+          <div class="hero__actions">
+            <button id="share" class="pill-button" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" /></svg>
+              <span>{{share.button}}</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <section class="wrap section" aria-labelledby="board-title">
-        <div class="section__head">
-          <h2 id="board-title">{{board.title}}</h2>
-          <p id="board-source" class="muted"></p>
+        <div class="block">
+          <div class="block__head">
+            <h2 id="board-title">{{board.title}}</h2>
+            <p id="board-source" class="muted"></p>
+          </div>
+          <p class="hint">{{board.hint}}</p>
+          <ul id="board" class="board" aria-labelledby="board-title"></ul>
         </div>
-        <ul id="board" class="board"></ul>
-      </section>
 
-      <div class="wrap duo">
-        <section class="card chart" aria-labelledby="chart-title">
-          <div class="card__head">
-            <h2 id="chart-title">{{chart.title}}</h2>
-            <div id="chart-currency" class="segmented" role="group" aria-label="{{chart.currency}}"></div>
+        <div class="block card all">
+          <div class="block__head">
+            <h2 id="all-title">{{all.title}}</h2>
+            <p id="all-count" class="muted"></p>
           </div>
-          <figure class="chart__figure">
-            <div id="chart" class="chart__plot"></div>
-            <figcaption id="chart-summary" class="muted"></figcaption>
-          </figure>
-          <div id="chart-range" class="segmented" role="group" aria-label="{{chart.range}}">
-            <button type="button" data-days="7">{{chart.days7}}</button>
-            <button type="button" data-days="30" aria-pressed="true">{{chart.days30}}</button>
-            <button type="button" data-days="90">{{chart.days90}}</button>
-            <button type="button" data-days="365">{{chart.days365}}</button>
-          </div>
-        </section>
+          <label class="search">
+            <span class="visually-hidden">{{all.search}}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+            <input id="search" type="search" placeholder="{{all.search}}" autocomplete="off" enterkeyhint="search" />
+          </label>
+          <ul id="all-rates" class="all__list" aria-labelledby="all-title"></ul>
+          <p id="all-empty" class="muted" hidden>{{all.empty}}</p>
+          <button id="all-toggle" class="link-button" type="button" aria-controls="all-rates" aria-expanded="false" hidden></button>
+        </div>
 
-        <section class="card banks" aria-labelledby="banks-title">
-          <div class="card__head">
-            <h2 id="banks-title">{{banks.title}}</h2>
-            <div id="banks-currency" class="segmented" role="group" aria-label="{{banks.currency}}">
-              <button type="button" data-code="USD" aria-pressed="true">USD</button>
-              <button type="button" data-code="EUR">EUR</button>
-              <button type="button" data-code="RUB">RUB</button>
-            </div>
-          </div>
-          <p id="banks-updated" class="muted"></p>
-          <div class="table-scroll">
-            <table class="banks__table">
-              <thead>
-                <tr>
-                  <th scope="col">{{banks.bank}}</th>
-                  <th scope="col" class="num-col">{{banks.buy}}<span class="th-hint">{{banks.buyHint}}</span></th>
-                  <th scope="col" class="num-col">{{banks.sell}}<span class="th-hint">{{banks.sellHint}}</span></th>
-                </tr>
-              </thead>
-              <tbody id="banks-body"></tbody>
-            </table>
-          </div>
-          <button id="banks-toggle" class="link-button" type="button" aria-controls="banks-body" aria-expanded="false" hidden></button>
-        </section>
-      </div>
-
-      <section id="bot" class="bot" aria-labelledby="bot-title" hidden>
-        <div class="wrap bot__grid">
+        <section id="bot" class="block bot" aria-labelledby="bot-title" hidden>
           <div>
             <h2 id="bot-title">{{bot.title}}</h2>
             <p class="bot__text">{{bot.text}}</p>
@@ -141,6 +124,100 @@
             <p class="chat__me">100 usd</p>
             <p class="chat__bot" id="bot-example">100 USD = … TJS</p>
           </div>
+        </section>
+      </section>
+
+      <section id="convert" class="view card converter" aria-labelledby="converter-title">
+        <h2 id="converter-title">{{converter.title}}</h2>
+        <div class="field">
+          <label for="amount">{{converter.amount}}</label>
+          <div class="field__row">
+            <input id="amount" class="num" type="text" inputmode="decimal" autocomplete="off" value="100" aria-describedby="amount-error" />
+            <select id="from" aria-label="{{converter.from}}"></select>
+          </div>
+          <p id="amount-error" class="error" hidden>{{converter.invalid}}</p>
+        </div>
+        <div id="chips" class="chips" role="group" aria-label="{{converter.quick}}">
+          <button type="button" data-amount="100">100</button>
+          <button type="button" data-amount="500">500</button>
+          <button type="button" data-amount="1000">1 000</button>
+          <button type="button" data-amount="5000">5 000</button>
+        </div>
+        <div class="swap">
+          <button id="swap" type="button" aria-label="{{converter.swap}}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v16M4 8l4-4 4 4M16 20V4M12 16l4 4 4-4" /></svg>
+          </button>
+        </div>
+        <div class="field">
+          <label for="result">{{converter.result}}</label>
+          <div class="field__row field__row--result">
+            <output id="result" class="num" for="amount from to" aria-live="polite">—</output>
+            <select id="to" aria-label="{{converter.to}}"></select>
+          </div>
+        </div>
+        <div class="converter__actions">
+          <button id="copy" class="pill-button" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>
+            <span>{{converter.copy}}</span>
+          </button>
+        </div>
+        <p class="note">{{converter.note}}</p>
+        <h3 id="multi-title" class="multi__title"></h3>
+        <ul id="multi" class="multi" aria-labelledby="multi-title"></ul>
+      </section>
+
+      <section id="exchange" class="view card banks" aria-labelledby="planner-title">
+        <h2 id="planner-title">{{planner.title}}</h2>
+        <p class="muted">{{planner.text}}</p>
+        <div class="planner">
+          <div id="planner-direction" class="segmented segmented--wide" role="group" aria-label="{{planner.direction}}">
+            <button type="button" data-direction="sell" aria-pressed="true">{{planner.sell}}</button>
+            <button type="button" data-direction="buy">{{planner.buy}}</button>
+          </div>
+          <div class="planner__row">
+            <label class="visually-hidden" for="planner-amount">{{planner.amount}}</label>
+            <input id="planner-amount" class="num" type="text" inputmode="decimal" autocomplete="off" value="100" />
+            <div id="banks-currency" class="segmented" role="group" aria-label="{{banks.currency}}">
+              <button type="button" data-code="USD" aria-pressed="true">USD</button>
+              <button type="button" data-code="EUR">EUR</button>
+              <button type="button" data-code="RUB">RUB</button>
+            </div>
+          </div>
+          <div id="planner-result" class="planner__result" aria-live="polite"></div>
+        </div>
+
+        <h3 id="banks-title" class="banks__title">{{banks.title}}</h3>
+        <p id="banks-updated" class="muted"></p>
+        <div class="table-scroll">
+          <table class="banks__table" aria-labelledby="banks-title">
+            <thead>
+              <tr>
+                <th scope="col">{{banks.bank}}</th>
+                <th scope="col" class="num-col">{{banks.buy}}<span class="th-hint">{{banks.buyHint}}</span></th>
+                <th scope="col" class="num-col">{{banks.sell}}<span class="th-hint">{{banks.sellHint}}</span></th>
+              </tr>
+            </thead>
+            <tbody id="banks-body"></tbody>
+          </table>
+        </div>
+        <button id="banks-toggle" class="link-button" type="button" aria-controls="banks-body" aria-expanded="false" hidden></button>
+      </section>
+
+      <section id="history" class="view card chart" aria-labelledby="chart-title">
+        <div class="card__head">
+          <h2 id="chart-title">{{chart.title}}</h2>
+          <div id="chart-currency" class="segmented" role="group" aria-label="{{chart.currency}}"></div>
+        </div>
+        <dl id="chart-stats" class="stats"></dl>
+        <figure class="chart__figure">
+          <div id="chart" class="chart__plot"></div>
+          <figcaption id="chart-summary" class="muted"></figcaption>
+        </figure>
+        <div id="chart-range" class="segmented segmented--wide" role="group" aria-label="{{chart.range}}">
+          <button type="button" data-days="7">{{chart.days7}}</button>
+          <button type="button" data-days="30" aria-pressed="true">{{chart.days30}}</button>
+          <button type="button" data-days="90">{{chart.days90}}</button>
+          <button type="button" data-days="365">{{chart.days365}}</button>
         </div>
       </section>
     </main>
@@ -152,5 +229,51 @@
         <p><a href="https://github.com/Mahmud0547/kursi-tojik" target="_blank" rel="noopener noreferrer">{{footer.code}}</a></p>
       </div>
     </footer>
+
+    <dialog id="settings" class="sheet" aria-labelledby="settings-title">
+      <form method="dialog" class="sheet__inner">
+        <div class="sheet__head">
+          <h2 id="settings-title">{{settings.title}}</h2>
+          <button class="icon-button icon-button--plain" value="close" aria-label="{{settings.close}}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+
+        <fieldset class="option">
+          <legend>{{settings.theme}}</legend>
+          <div class="segmented segmented--wide">
+            <label><input type="radio" name="theme" value="auto" checked /><span>{{settings.themeAuto}}</span></label>
+            <label><input type="radio" name="theme" value="light" /><span>{{settings.themeLight}}</span></label>
+            <label><input type="radio" name="theme" value="dark" /><span>{{settings.themeDark}}</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="option">
+          <legend>{{settings.size}}</legend>
+          <div class="segmented segmented--wide">
+            <label><input type="radio" name="size" value="normal" checked /><span>{{settings.sizeNormal}}</span></label>
+            <label><input type="radio" name="size" value="large" /><span class="size-large">{{settings.sizeLarge}}</span></label>
+          </div>
+        </fieldset>
+
+        <div class="option">
+          <p class="option__title">{{settings.language}}</p>
+          <div class="segmented segmented--wide langs-sheet">
+            <a href="/" hreflang="tg" lang="tg" {{current.tj}}>Тоҷикӣ</a>
+            <a href="/ru/" hreflang="ru" lang="ru" {{current.ru}}>Русский</a>
+            <a href="/en/" hreflang="en" lang="en" {{current.en}}>English</a>
+          </div>
+        </div>
+
+        <div id="install" class="option">
+          <p class="option__title">{{settings.install}}</p>
+          <p id="install-text" class="muted">{{settings.installHow}}</p>
+        </div>
+
+        <button id="settings-reset" class="link-button" type="button">{{settings.reset}}</button>
+      </form>
+    </dialog>
+
+    <p id="toast" class="toast" role="status" aria-live="polite" hidden></p>
   </body>
 </html>

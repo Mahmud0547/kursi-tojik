@@ -15,18 +15,28 @@ export function changeView(rate: LatestRate, lang: Lang): { text: string; dir: "
   return { text: `${change > 0 ? "▲" : "▼"} ${formatPercent(Math.abs(change), lang, true)}`, dir: change > 0 ? "up" : "down" };
 }
 
-export function renderBoard(list: HTMLElement, rates: LatestRate[], lang: Lang): void {
-  const items = TRACKED.flatMap((code) => {
+/** The main currencies plus the ones the visitor pinned. */
+export function boardCodes(pins: string[]): string[] {
+  return [...TRACKED, ...pins.filter((code) => !(TRACKED as readonly string[]).includes(code))];
+}
+
+/**
+ * One card per currency. A card is a button: pressing it puts that currency in the big number at the top.
+ * `selected` is the currency shown there now.
+ */
+export function renderBoard(list: HTMLElement, rates: LatestRate[], lang: Lang, pins: string[], selected: string, onSelect: (code: string) => void): void {
+  const items = boardCodes(pins).flatMap((code) => {
     const rate = rates.find((r) => r.code === code);
     if (!rate) return [];
     const change = changeView(rate, lang);
-    return [
-      h("li", { class: "board__item" }, [
-        h("p", { class: "board__code", text: `${rate.nominal} ${rate.code}`, attrs: { title: currencyName(lang, code, rate.name) } }),
-        h("p", { class: "board__value num", text: formatRate(rate.value, lang) }),
-        change ? h("p", { class: `change change--${change.dir}`, text: change.text }) : h("p", { class: "change", text: " " }),
-      ]),
-    ];
+    const button = h("button", { class: "board__item", attrs: { type: "button", "aria-pressed": String(code === selected) } }, [
+      h("span", { class: "board__code", text: `${rate.nominal} ${rate.code}` }),
+      h("span", { class: "board__name", text: currencyName(lang, code, rate.name) }),
+      h("span", { class: "board__value num", text: formatRate(rate.value, lang) }),
+      change ? h("span", { class: `change change--${change.dir}`, text: change.text }) : h("span", { class: "change", text: " " }),
+    ]);
+    button.addEventListener("click", () => onSelect(code));
+    return [h("li", {}, [button])];
   });
   list.replaceChildren(...items);
 }

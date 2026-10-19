@@ -9,6 +9,9 @@ Official Tajik somoni exchange rates from the National Bank of Tajikistan — on
 - Rate history from 7 days to a year, from our own database.
 - Commercial bank cash rates with the best ones marked.
 - A Telegram bot: send `100 usd` and get somoni; daily digest at 09:00 Dushanbe time.
+- "Where to exchange": the best and the worst bank for your amount today, and how much you save.
+- All 36 currencies with search; pin any of them to the board.
+- Works like an app on the phone's home screen: bottom tabs, light/dark theme, large text, offline mode.
 - Tajik (default), Russian and English.
 
 Every number comes from [nbt.tj](https://www.nbt.tj) and is shown with its date. Nothing is estimated or typed by hand.

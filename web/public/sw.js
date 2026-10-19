@@ -1,6 +1,6 @@
 // Offline support: pages and assets are cached as they are used; API answers are network-first,
 // so a phone without a connection still shows the last rates it saw (with their date).
-const CACHE = "kursi-tojik-v2";
+const CACHE = "kursi-tojik-v3";
 
 self.addEventListener("install", () => self.skipWaiting());
 
